@@ -37,3 +37,27 @@ build:
 # Clean up build folder
 clean:
 	rm -rf $(BUILD_DIR)/
+
+
+###############################################################################
+###                                Database                                 ###
+###############################################################################
+
+# Define the tools and their versions
+SQLC             := $(BUILD_DIR)/sqlc${EXT}
+SQLC_VERSION     := latest
+
+# Install all the database tools
+db-tools:
+	@echo "Checking for required tools..."
+	@mkdir -p $(BUILD_DIR)
+	@if [ ! -x "$(SQLC)" ]; then \
+	  echo "Installing sqlc..."; \
+	  GOBIN=$(BUILD_DIR) go install github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION); \
+	fi
+
+# Generate SQLC code
+db-gen: db-tools
+	@echo "Generating SQLC code..."
+	# Run SQLC
+	@$(SQLC) generate --file sqlc.yaml
