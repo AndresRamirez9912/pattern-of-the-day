@@ -47,8 +47,10 @@ type AppConfig struct {
 
 	// Database contains the database connection information
 	Database struct {
-		// Connection is the connection string to connect to the database
-		Connection string `mapstructure:"connection"`
+		// MinIdleConns is the minimum number of idle connections in the pool
+		MinIdleConns int `mapstructure:"min_idle_conns"`
+		// MaxOpenConns is the maximum number of open connections to the database
+		MaxOpenConns int `mapstructure:"max_open_conns"`
 	} `mapstructure:"database"`
 }
 
