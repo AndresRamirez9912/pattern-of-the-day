@@ -10,7 +10,7 @@ type Services struct {
 }
 
 // NewServices creates a new instance of Services with the required dependencies
-func NewServices(cfg *config.AppConfig) *Services {
+func NewServices(cfg *config.AppConfig, logger *Logger) *Services {
 	// Initialize each service
 	return &Services{
 		// Challenges: NewChallengeService(),
