@@ -4,12 +4,9 @@ INSERT INTO challenges (
     description,
     difficulty,
     type,
-    target_pattern,
-    status,
-    created_at,
-    updated_at
+    target_pattern
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetChallengeById :one
@@ -21,3 +18,14 @@ WHERE id = ?;
 SELECT *
 FROM challenges
 ORDER BY created_at DESC;
+
+-- name: UpdateChallenge :one
+UPDATE challenges
+SET name = ?,
+    description = ?,
+    difficulty = ?,
+    type = ?,
+    target_pattern = ?,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
+RETURNING *;

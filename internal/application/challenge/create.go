@@ -35,7 +35,7 @@ func (c *CreateChallengeUseCase) Execute(ctx context.Context, req ports.Challeng
 	}
 
 	// Save the generated challenge to the ChallengeRepository
-	err = c.ChallengeRepository.SaveChallenge(challenge)
+	err = c.ChallengeRepository.SaveChallenge(ctx, challenge)
 	if err != nil {
 		c.Logger.Error("error saving challenge to the repository", "error", err.Error())
 		return nil, err

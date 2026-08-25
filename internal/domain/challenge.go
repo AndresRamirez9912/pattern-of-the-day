@@ -2,7 +2,7 @@ package domain
 
 // Challenge defines the properties of a challenge
 type Challenge struct {
-	Id          string
+	Id          int64
 	Name        string
 	Description string
 	Dificulty   Difficulty
@@ -13,7 +13,7 @@ type Challenge struct {
 }
 
 // NewChallenge creates a new challenge with the given parameters
-func NewChallenge(id, name, description string, difficulty Difficulty, challengeType ChallengeType, pattern Pattern) *Challenge {
+func NewChallenge(id int64, name, description string, difficulty Difficulty, challengeType ChallengeType, pattern Pattern) *Challenge {
 	return &Challenge{
 		Id:          id,
 		Name:        name,
@@ -27,7 +27,7 @@ func NewChallenge(id, name, description string, difficulty Difficulty, challenge
 }
 
 // Difficulty is a custom type to define the supported challenge difficulty
-type Difficulty int
+type Difficulty int64
 
 // Supported challenge difficulty
 const (

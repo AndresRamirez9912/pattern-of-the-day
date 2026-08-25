@@ -36,7 +36,7 @@ func (g *GenerateClueUseCase) Execute(ctx context.Context, challenge *domain.Cha
 	}
 
 	// Save the generated clue to the ClueRepository
-	err = g.ClueRepository.SaveClue(challenge.Id, clue.Description)
+	err = g.ClueRepository.SaveClue(ctx, challenge.Id, clue)
 	if err != nil {
 		g.Logger.Error("error saving clue to the repository", "error", err.Error())
 		return nil, err

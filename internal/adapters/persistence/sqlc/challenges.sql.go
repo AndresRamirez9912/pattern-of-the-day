@@ -7,7 +7,6 @@ package sqlc
 
 import (
 	"context"
-	"time"
 )
 
 const createChallenge = `-- name: CreateChallenge :one
@@ -16,24 +15,18 @@ INSERT INTO challenges (
     description,
     difficulty,
     type,
-    target_pattern,
-    status,
-    created_at,
-    updated_at
+    target_pattern
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-RETURNING id, name, description, difficulty, type, target_pattern, status, created_at, updated_at
+VALUES (?, ?, ?, ?, ?)
+RETURNING id, name, description, difficulty, type, target_pattern, created_at, updated_at
 `
 
 type CreateChallengeParams struct {
 	Name          string
 	Description   string
-	Difficulty    string
+	Difficulty    int64
 	Type          string
 	TargetPattern string
-	Status        string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
 }
 
 func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams) (Challenge, error) {
@@ -43,9 +36,6 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 		arg.Difficulty,
 		arg.Type,
 		arg.TargetPattern,
-		arg.Status,
-		arg.CreatedAt,
-		arg.UpdatedAt,
 	)
 	var i Challenge
 	err := row.Scan(
@@ -55,7 +45,6 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 		&i.Difficulty,
 		&i.Type,
 		&i.TargetPattern,
-		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -63,7 +52,7 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 }
 
 const getChallengeById = `-- name: GetChallengeById :one
-SELECT id, name, description, difficulty, type, target_pattern, status, created_at, updated_at
+SELECT id, name, description, difficulty, type, target_pattern, created_at, updated_at
 FROM challenges
 WHERE id = ?
 `
@@ -78,7 +67,6 @@ func (q *Queries) GetChallengeById(ctx context.Context, id int64) (Challenge, er
 		&i.Difficulty,
 		&i.Type,
 		&i.TargetPattern,
-		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -86,7 +74,7 @@ func (q *Queries) GetChallengeById(ctx context.Context, id int64) (Challenge, er
 }
 
 const listChallenges = `-- name: ListChallenges :many
-SELECT id, name, description, difficulty, type, target_pattern, status, created_at, updated_at
+SELECT id, name, description, difficulty, type, target_pattern, created_at, updated_at
 FROM challenges
 ORDER BY created_at DESC
 `
@@ -107,7 +95,6 @@ func (q *Queries) ListChallenges(ctx context.Context) ([]Challenge, error) {
 			&i.Difficulty,
 			&i.Type,
 			&i.TargetPattern,
-			&i.Status,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -122,4 +109,48 @@ func (q *Queries) ListChallenges(ctx context.Context) ([]Challenge, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateChallenge = `-- name: UpdateChallenge :one
+UPDATE challenges
+SET name = ?,
+    description = ?,
+    difficulty = ?,
+    type = ?,
+    target_pattern = ?,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
+RETURNING id, name, description, difficulty, type, target_pattern, created_at, updated_at
+`
+
+type UpdateChallengeParams struct {
+	Name          string
+	Description   string
+	Difficulty    int64
+	Type          string
+	TargetPattern string
+	ID            int64
+}
+
+func (q *Queries) UpdateChallenge(ctx context.Context, arg UpdateChallengeParams) (Challenge, error) {
+	row := q.db.QueryRowContext(ctx, updateChallenge,
+		arg.Name,
+		arg.Description,
+		arg.Difficulty,
+		arg.Type,
+		arg.TargetPattern,
+		arg.ID,
+	)
+	var i Challenge
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Difficulty,
+		&i.Type,
+		&i.TargetPattern,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }

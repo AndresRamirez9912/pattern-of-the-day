@@ -7,4 +7,4 @@ sql:
     gen:
       go:
         package: "sqlc"
-        out: "internal/adapters/persistence"
+        out: "internal/adapters/persistence/sqlc"

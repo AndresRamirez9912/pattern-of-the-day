@@ -1,11 +1,15 @@
 package ports
 
+import (
+	"context"
+
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
+)
+
 // FeedbackRepository defines the interface for storing and retrieving feedback entries
 type FeedbackRepository interface {
 	// SaveFeedback saves a feedback entry to the repository
-	SaveFeedback(challengeId, feedback string) error
-	// GetChallengeFeedback retrieves all feedback entries associated with a specific challenge ID from the repository
-	GetChallengeFeedback(challengeID string) ([]string, error)
-	// GetFeedbacks retrieves all feedback entries from the repository/
-	GetFeedbacks() ([]string, error)
+	SaveFeedback(ctx context.Context, feedback *domain.Feedback) error
+	// GetFeedbacks retrieves all feedback entries from the repository
+	GetFeedbacks(ctx context.Context) ([]*domain.Feedback, error)
 }

@@ -33,3 +33,6 @@ go.work.sum
 
 # Build directory
 /build
+
+# DB Data
+app.db
