@@ -8,17 +8,17 @@ import (
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 )
 
-// GenerateClueUseCase is responsible for generating a new clue using the
+// CreateClueUseCase is responsible for generating a new clue using the
 // LLM provider and saving it to the ClueRepository
-type GenerateClueUseCase struct {
+type CreateClueUseCase struct {
 	Logger         app.Logger
 	LLMProvider    ports.LLMProvider
 	ClueRepository ports.ClueRepository
 }
 
-// NewGenerateClueUseCase creates a new instance of GenerateClueUseCase with the provided LLMProvider and ClueRepository
-func NewGenerateClueUseCase(logger app.Logger, llmProvider ports.LLMProvider, clueRepository ports.ClueRepository) *GenerateClueUseCase {
-	return &GenerateClueUseCase{
+// NewCreateClueUseCase creates a new instance of GenerateClueUseCase with the provided LLMProvider and ClueRepository
+func NewCreateClueUseCase(logger app.Logger, llmProvider ports.LLMProvider, clueRepository ports.ClueRepository) *CreateClueUseCase {
+	return &CreateClueUseCase{
 		Logger:         logger,
 		LLMProvider:    llmProvider,
 		ClueRepository: clueRepository,
@@ -26,7 +26,7 @@ func NewGenerateClueUseCase(logger app.Logger, llmProvider ports.LLMProvider, cl
 }
 
 // Execute generates a new clue using the LLM provider and saves it to the ClueRepository
-func (g *GenerateClueUseCase) Execute(ctx context.Context, challenge *domain.Challenge) (*domain.Clue, error) {
+func (g *CreateClueUseCase) Execute(ctx context.Context, challenge *domain.Challenge) (*domain.Clue, error) {
 	// Generate a new clue using the LLM provider
 	clue, err := g.LLMProvider.GenerateClue(ctx, challenge)
 	if err != nil {
