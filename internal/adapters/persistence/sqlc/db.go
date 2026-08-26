@@ -7,6 +7,7 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type DBTX interface {
@@ -20,12 +21,248 @@ func New(db DBTX) *Queries {
 	return &Queries{db: db}
 }
 
+func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
+	q := Queries{db: db}
+	var err error
+	if q.createAttemptStmt, err = db.PrepareContext(ctx, createAttempt); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateAttempt: %w", err)
+	}
+	if q.createChallengeStmt, err = db.PrepareContext(ctx, createChallenge); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateChallenge: %w", err)
+	}
+	if q.createClueStmt, err = db.PrepareContext(ctx, createClue); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateClue: %w", err)
+	}
+	if q.createFeedbackStmt, err = db.PrepareContext(ctx, createFeedback); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateFeedback: %w", err)
+	}
+	if q.createUserStmt, err = db.PrepareContext(ctx, createUser); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateUser: %w", err)
+	}
+	if q.getAttemptByIdStmt, err = db.PrepareContext(ctx, getAttemptById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetAttemptById: %w", err)
+	}
+	if q.getChallengeByIdStmt, err = db.PrepareContext(ctx, getChallengeById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetChallengeById: %w", err)
+	}
+	if q.getCluesByChallengeIdStmt, err = db.PrepareContext(ctx, getCluesByChallengeId); err != nil {
+		return nil, fmt.Errorf("error preparing query GetCluesByChallengeId: %w", err)
+	}
+	if q.getFeedbackByIdStmt, err = db.PrepareContext(ctx, getFeedbackById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetFeedbackById: %w", err)
+	}
+	if q.getUserByIdStmt, err = db.PrepareContext(ctx, getUserById); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserById: %w", err)
+	}
+	if q.getUserByUsernameStmt, err = db.PrepareContext(ctx, getUserByUsername); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByUsername: %w", err)
+	}
+	if q.listAttemptsByUserChallengeStmt, err = db.PrepareContext(ctx, listAttemptsByUserChallenge); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAttemptsByUserChallenge: %w", err)
+	}
+	if q.listChallengesStmt, err = db.PrepareContext(ctx, listChallenges); err != nil {
+		return nil, fmt.Errorf("error preparing query ListChallenges: %w", err)
+	}
+	if q.listCluesByChallengeIdStmt, err = db.PrepareContext(ctx, listCluesByChallengeId); err != nil {
+		return nil, fmt.Errorf("error preparing query ListCluesByChallengeId: %w", err)
+	}
+	if q.listUserChallengesStmt, err = db.PrepareContext(ctx, listUserChallenges); err != nil {
+		return nil, fmt.Errorf("error preparing query ListUserChallenges: %w", err)
+	}
+	if q.listUsersStmt, err = db.PrepareContext(ctx, listUsers); err != nil {
+		return nil, fmt.Errorf("error preparing query ListUsers: %w", err)
+	}
+	if q.updateAttemptStmt, err = db.PrepareContext(ctx, updateAttempt); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateAttempt: %w", err)
+	}
+	if q.updateChallengeStmt, err = db.PrepareContext(ctx, updateChallenge); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateChallenge: %w", err)
+	}
+	if q.updateUserStmt, err = db.PrepareContext(ctx, updateUser); err != nil {
+		return nil, fmt.Errorf("error preparing query UpdateUser: %w", err)
+	}
+	return &q, nil
+}
+
+func (q *Queries) Close() error {
+	var err error
+	if q.createAttemptStmt != nil {
+		if cerr := q.createAttemptStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createAttemptStmt: %w", cerr)
+		}
+	}
+	if q.createChallengeStmt != nil {
+		if cerr := q.createChallengeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createChallengeStmt: %w", cerr)
+		}
+	}
+	if q.createClueStmt != nil {
+		if cerr := q.createClueStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createClueStmt: %w", cerr)
+		}
+	}
+	if q.createFeedbackStmt != nil {
+		if cerr := q.createFeedbackStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createFeedbackStmt: %w", cerr)
+		}
+	}
+	if q.createUserStmt != nil {
+		if cerr := q.createUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createUserStmt: %w", cerr)
+		}
+	}
+	if q.getAttemptByIdStmt != nil {
+		if cerr := q.getAttemptByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getAttemptByIdStmt: %w", cerr)
+		}
+	}
+	if q.getChallengeByIdStmt != nil {
+		if cerr := q.getChallengeByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getChallengeByIdStmt: %w", cerr)
+		}
+	}
+	if q.getCluesByChallengeIdStmt != nil {
+		if cerr := q.getCluesByChallengeIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getCluesByChallengeIdStmt: %w", cerr)
+		}
+	}
+	if q.getFeedbackByIdStmt != nil {
+		if cerr := q.getFeedbackByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getFeedbackByIdStmt: %w", cerr)
+		}
+	}
+	if q.getUserByIdStmt != nil {
+		if cerr := q.getUserByIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByIdStmt: %w", cerr)
+		}
+	}
+	if q.getUserByUsernameStmt != nil {
+		if cerr := q.getUserByUsernameStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByUsernameStmt: %w", cerr)
+		}
+	}
+	if q.listAttemptsByUserChallengeStmt != nil {
+		if cerr := q.listAttemptsByUserChallengeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAttemptsByUserChallengeStmt: %w", cerr)
+		}
+	}
+	if q.listChallengesStmt != nil {
+		if cerr := q.listChallengesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listChallengesStmt: %w", cerr)
+		}
+	}
+	if q.listCluesByChallengeIdStmt != nil {
+		if cerr := q.listCluesByChallengeIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listCluesByChallengeIdStmt: %w", cerr)
+		}
+	}
+	if q.listUserChallengesStmt != nil {
+		if cerr := q.listUserChallengesStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listUserChallengesStmt: %w", cerr)
+		}
+	}
+	if q.listUsersStmt != nil {
+		if cerr := q.listUsersStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listUsersStmt: %w", cerr)
+		}
+	}
+	if q.updateAttemptStmt != nil {
+		if cerr := q.updateAttemptStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateAttemptStmt: %w", cerr)
+		}
+	}
+	if q.updateChallengeStmt != nil {
+		if cerr := q.updateChallengeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateChallengeStmt: %w", cerr)
+		}
+	}
+	if q.updateUserStmt != nil {
+		if cerr := q.updateUserStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing updateUserStmt: %w", cerr)
+		}
+	}
+	return err
+}
+
+func (q *Queries) exec(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (sql.Result, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
+	case stmt != nil:
+		return stmt.ExecContext(ctx, args...)
+	default:
+		return q.db.ExecContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) query(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (*sql.Rows, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryContext(ctx, args...)
+	default:
+		return q.db.QueryContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) *sql.Row {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryRowContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryRowContext(ctx, args...)
+	default:
+		return q.db.QueryRowContext(ctx, query, args...)
+	}
+}
+
 type Queries struct {
-	db DBTX
+	db                              DBTX
+	tx                              *sql.Tx
+	createAttemptStmt               *sql.Stmt
+	createChallengeStmt             *sql.Stmt
+	createClueStmt                  *sql.Stmt
+	createFeedbackStmt              *sql.Stmt
+	createUserStmt                  *sql.Stmt
+	getAttemptByIdStmt              *sql.Stmt
+	getChallengeByIdStmt            *sql.Stmt
+	getCluesByChallengeIdStmt       *sql.Stmt
+	getFeedbackByIdStmt             *sql.Stmt
+	getUserByIdStmt                 *sql.Stmt
+	getUserByUsernameStmt           *sql.Stmt
+	listAttemptsByUserChallengeStmt *sql.Stmt
+	listChallengesStmt              *sql.Stmt
+	listCluesByChallengeIdStmt      *sql.Stmt
+	listUserChallengesStmt          *sql.Stmt
+	listUsersStmt                   *sql.Stmt
+	updateAttemptStmt               *sql.Stmt
+	updateChallengeStmt             *sql.Stmt
+	updateUserStmt                  *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db: tx,
+		db:                              tx,
+		tx:                              tx,
+		createAttemptStmt:               q.createAttemptStmt,
+		createChallengeStmt:             q.createChallengeStmt,
+		createClueStmt:                  q.createClueStmt,
+		createFeedbackStmt:              q.createFeedbackStmt,
+		createUserStmt:                  q.createUserStmt,
+		getAttemptByIdStmt:              q.getAttemptByIdStmt,
+		getChallengeByIdStmt:            q.getChallengeByIdStmt,
+		getCluesByChallengeIdStmt:       q.getCluesByChallengeIdStmt,
+		getFeedbackByIdStmt:             q.getFeedbackByIdStmt,
+		getUserByIdStmt:                 q.getUserByIdStmt,
+		getUserByUsernameStmt:           q.getUserByUsernameStmt,
+		listAttemptsByUserChallengeStmt: q.listAttemptsByUserChallengeStmt,
+		listChallengesStmt:              q.listChallengesStmt,
+		listCluesByChallengeIdStmt:      q.listCluesByChallengeIdStmt,
+		listUserChallengesStmt:          q.listUserChallengesStmt,
+		listUsersStmt:                   q.listUsersStmt,
+		updateAttemptStmt:               q.updateAttemptStmt,
+		updateChallengeStmt:             q.updateChallengeStmt,
+		updateUserStmt:                  q.updateUserStmt,
 	}
 }

@@ -13,88 +13,136 @@ import (
 const createAttempt = `-- name: CreateAttempt :one
 INSERT INTO attempts (
     feedback_id,
-    user_challenge_id,
+    challenge_id,
     status
 )
 VALUES (?, ?, ?)
-RETURNING id, user_challenge_id, feedback_id, status, created_at, updated_at
+RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
 `
 
 type CreateAttemptParams struct {
-	FeedbackID      interface{}
-	UserChallengeID int64
-	Status          string
+	FeedbackID  *int64 `json:"feedback_id"`
+	ChallengeID int64  `json:"challenge_id"`
+	Status      string `json:"status"`
 }
 
+// CreateAttempt
+//
+//	INSERT INTO attempts (
+//	    feedback_id,
+//	    challenge_id,
+//	    status
+//	)
+//	VALUES (?, ?, ?)
+//	RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
 func (q *Queries) CreateAttempt(ctx context.Context, arg CreateAttemptParams) (Attempt, error) {
-	row := q.db.QueryRowContext(ctx, createAttempt, arg.FeedbackID, arg.UserChallengeID, arg.Status)
+	row := q.queryRow(ctx, q.createAttemptStmt, createAttempt, arg.FeedbackID, arg.ChallengeID, arg.Status)
 	var i Attempt
 	err := row.Scan(
 		&i.ID,
-		&i.UserChallengeID,
+		&i.ChallengeID,
 		&i.FeedbackID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.CompletedAt,
 	)
 	return i, err
 }
 
-const getUserAttemptsByChallengeId = `-- name: GetUserAttemptsByChallengeId :many
-SELECT attempts.id, user_challenge_id, feedback_id, attempts.status, attempts.created_at, attempts.updated_at, user_challenges.id, user_id, challenge_id, user_challenges.status, user_challenges.created_at, user_challenges.updated_at, completed_at
+const getAttemptById = `-- name: GetAttemptById :one
+SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
 FROM attempts
-JOIN user_challenges ON attempts.user_challenge_id = user_challenges.id
-WHERE user_challenges.user_id = ? AND user_challenges.challenge_id = ?
+WHERE id = ?
+`
+
+// GetAttemptById
+//
+//	SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+//	FROM attempts
+//	WHERE id = ?
+func (q *Queries) GetAttemptById(ctx context.Context, id int64) (Attempt, error) {
+	row := q.queryRow(ctx, q.getAttemptByIdStmt, getAttemptById, id)
+	var i Attempt
+	err := row.Scan(
+		&i.ID,
+		&i.ChallengeID,
+		&i.FeedbackID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const listAttemptsByUserChallenge = `-- name: ListAttemptsByUserChallenge :many
+SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target_pattern, user_id, challenges.created_at, challenges.updated_at
+FROM attempts
+JOIN challenges ON attempts.challenge_id = challenges.id
+WHERE challenges.user_id = ? AND challenges.id = ?
 ORDER BY attempts.created_at DESC
 `
 
-type GetUserAttemptsByChallengeIdParams struct {
-	UserID      int64
-	ChallengeID int64
+type ListAttemptsByUserChallengeParams struct {
+	UserID int64 `json:"user_id"`
+	ID     int64 `json:"id"`
 }
 
-type GetUserAttemptsByChallengeIdRow struct {
-	ID              int64
-	UserChallengeID int64
-	FeedbackID      interface{}
-	Status          string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
-	ID_2            int64
-	UserID          int64
-	ChallengeID     int64
-	Status_2        string
-	CreatedAt_2     time.Time
-	UpdatedAt_2     time.Time
-	CompletedAt     interface{}
+type ListAttemptsByUserChallengeRow struct {
+	ID            int64      `json:"id"`
+	ChallengeID   int64      `json:"challenge_id"`
+	FeedbackID    *int64     `json:"feedback_id"`
+	Status        string     `json:"status"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	CompletedAt   *time.Time `json:"completed_at"`
+	ID_2          int64      `json:"id_2"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	Difficulty    int64      `json:"difficulty"`
+	Type          string     `json:"type"`
+	TargetPattern string     `json:"target_pattern"`
+	UserID        int64      `json:"user_id"`
+	CreatedAt_2   time.Time  `json:"created_at_2"`
+	UpdatedAt_2   time.Time  `json:"updated_at_2"`
 }
 
 // This query fetches the attemps made by a specific user for a specific challenge.
 // It can be used to track the progress of a user on a particular challenge
-// It is obtained joinning the table user_challenges with the attempts table, filtering by user_id and challenge_id.
-func (q *Queries) GetUserAttemptsByChallengeId(ctx context.Context, arg GetUserAttemptsByChallengeIdParams) ([]GetUserAttemptsByChallengeIdRow, error) {
-	rows, err := q.db.QueryContext(ctx, getUserAttemptsByChallengeId, arg.UserID, arg.ChallengeID)
+// It is obtained joinning the table challenges with the attempts table, filtering by user_id and challenge_id.
+//
+//	SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target_pattern, user_id, challenges.created_at, challenges.updated_at
+//	FROM attempts
+//	JOIN challenges ON attempts.challenge_id = challenges.id
+//	WHERE challenges.user_id = ? AND challenges.id = ?
+//	ORDER BY attempts.created_at DESC
+func (q *Queries) ListAttemptsByUserChallenge(ctx context.Context, arg ListAttemptsByUserChallengeParams) ([]ListAttemptsByUserChallengeRow, error) {
+	rows, err := q.query(ctx, q.listAttemptsByUserChallengeStmt, listAttemptsByUserChallenge, arg.UserID, arg.ID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUserAttemptsByChallengeIdRow
+	var items []ListAttemptsByUserChallengeRow
 	for rows.Next() {
-		var i GetUserAttemptsByChallengeIdRow
+		var i ListAttemptsByUserChallengeRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.UserChallengeID,
+			&i.ChallengeID,
 			&i.FeedbackID,
 			&i.Status,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.CompletedAt,
 			&i.ID_2,
+			&i.Name,
+			&i.Description,
+			&i.Difficulty,
+			&i.Type,
+			&i.TargetPattern,
 			&i.UserID,
-			&i.ChallengeID,
-			&i.Status_2,
 			&i.CreatedAt_2,
 			&i.UpdatedAt_2,
-			&i.CompletedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -107,4 +155,42 @@ func (q *Queries) GetUserAttemptsByChallengeId(ctx context.Context, arg GetUserA
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateAttempt = `-- name: UpdateAttempt :one
+UPDATE attempts
+SET feedback_id = ?,
+    status = ?,
+    completed_at = CURRENT_TIMESTAMP
+WHERE id = ?
+RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+`
+
+type UpdateAttemptParams struct {
+	FeedbackID *int64 `json:"feedback_id"`
+	Status     string `json:"status"`
+	ID         int64  `json:"id"`
+}
+
+// UpdateAttempt
+//
+//	UPDATE attempts
+//	SET feedback_id = ?,
+//	    status = ?,
+//	    completed_at = CURRENT_TIMESTAMP
+//	WHERE id = ?
+//	RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+func (q *Queries) UpdateAttempt(ctx context.Context, arg UpdateAttemptParams) (Attempt, error) {
+	row := q.queryRow(ctx, q.updateAttemptStmt, updateAttempt, arg.FeedbackID, arg.Status, arg.ID)
+	var i Attempt
+	err := row.Scan(
+		&i.ID,
+		&i.ChallengeID,
+		&i.FeedbackID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CompletedAt,
+	)
+	return i, err
 }

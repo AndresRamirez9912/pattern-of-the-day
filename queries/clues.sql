@@ -12,3 +12,9 @@ SELECT *
 FROM clues
 WHERE challenge_id = ?
 ORDER BY sequence_order ASC;
+
+-- name: ListCluesByChallengeId :many
+SELECT *
+FROM clues
+WHERE challenge_id = ?
+ORDER BY sequence_order ASC;

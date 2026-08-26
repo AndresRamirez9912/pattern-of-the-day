@@ -19,12 +19,20 @@ RETURNING id, username, email, created_at, updated_at
 `
 
 type CreateUserParams struct {
-	Username string
-	Email    string
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
+// CreateUser
+//
+//	INSERT INTO users (
+//	    username,
+//	    email
+//	)
+//	VALUES (?, ?)
+//	RETURNING id, username, email, created_at, updated_at
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email)
+	row := q.queryRow(ctx, q.createUserStmt, createUser, arg.Username, arg.Email)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -42,8 +50,13 @@ FROM users
 WHERE id = ?
 `
 
+// GetUserById
+//
+//	SELECT id, username, email, created_at, updated_at
+//	FROM users
+//	WHERE id = ?
 func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserById, id)
+	row := q.queryRow(ctx, q.getUserByIdStmt, getUserById, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -61,8 +74,13 @@ FROM users
 WHERE username = ?
 `
 
+// GetUserByUsername
+//
+//	SELECT id, username, email, created_at, updated_at
+//	FROM users
+//	WHERE username = ?
 func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByUsername, username)
+	row := q.queryRow(ctx, q.getUserByUsernameStmt, getUserByUsername, username)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -74,14 +92,65 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 	return i, err
 }
 
+const listUserChallenges = `-- name: ListUserChallenges :many
+SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+FROM challenges
+WHERE user_id = ?
+ORDER BY created_at DESC
+`
+
+// ListUserChallenges
+//
+//	SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+//	FROM challenges
+//	WHERE user_id = ?
+//	ORDER BY created_at DESC
+func (q *Queries) ListUserChallenges(ctx context.Context, userID int64) ([]Challenge, error) {
+	rows, err := q.query(ctx, q.listUserChallengesStmt, listUserChallenges, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Challenge
+	for rows.Next() {
+		var i Challenge
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Difficulty,
+			&i.Type,
+			&i.TargetPattern,
+			&i.UserID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, username, email, created_at, updated_at
 FROM users
 ORDER BY created_at DESC
 `
 
+// ListUsers
+//
+//	SELECT id, username, email, created_at, updated_at
+//	FROM users
+//	ORDER BY created_at DESC
 func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
-	rows, err := q.db.QueryContext(ctx, listUsers)
+	rows, err := q.query(ctx, q.listUsersStmt, listUsers)
 	if err != nil {
 		return nil, err
 	}
@@ -117,13 +186,19 @@ RETURNING id, username, email, created_at, updated_at
 `
 
 type UpdateUserParams struct {
-	Username string
-	Email    string
-	ID       int64
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	ID       int64  `json:"id"`
 }
 
+// UpdateUser
+//
+//	UPDATE users
+//	SET username = ?, email = ?
+//	WHERE id = ?
+//	RETURNING id, username, email, created_at, updated_at
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, updateUser, arg.Username, arg.Email, arg.ID)
+	row := q.queryRow(ctx, q.updateUserStmt, updateUser, arg.Username, arg.Email, arg.ID)
 	var i User
 	err := row.Scan(
 		&i.ID,

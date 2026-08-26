@@ -17,14 +17,23 @@ type ChallengeRepository struct {
 	querier *sqlc.Queries
 }
 
+// NewChallengeRepository creates a new instance of ChallengeRepository with the provided querier
+func NewChallengeRepository(querier *sqlc.Queries) *ChallengeRepository {
+	return &ChallengeRepository{
+		querier: querier,
+	}
+}
+
 // SaveChallenge saves a challenge entity to the repository
 func (c *ChallengeRepository) SaveChallenge(ctx context.Context, challenge *domain.Challenge) error {
 	// Use the querier to create a new challenge in the database
 	_, err := c.querier.CreateChallenge(ctx, sqlc.CreateChallengeParams{
-		Name:        challenge.Name,
-		Description: challenge.Description,
-		Difficulty:  int64(challenge.Dificulty),
-		Type:        string(challenge.Type),
+		Name:          challenge.Name,
+		Description:   challenge.Description,
+		Difficulty:    int64(challenge.Dificulty),
+		Type:          string(challenge.Type),
+		TargetPattern: string(challenge.Pattern),
+		UserID:        challenge.UserId,
 	})
 	if err != nil {
 		return err

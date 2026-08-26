@@ -22,14 +22,24 @@ RETURNING id, score, rating, summary, json(suggestions), created_at, updated_at
 `
 
 type CreateFeedbackParams struct {
-	Score       int64
-	Rating      int64
-	Summary     string
-	Suggestions json.RawMessage
+	Score       int64           `json:"score"`
+	Rating      int64           `json:"rating"`
+	Summary     string          `json:"summary"`
+	Suggestions json.RawMessage `json:"suggestions"`
 }
 
+// CreateFeedback
+//
+//	INSERT INTO feedbacks (
+//	    score,
+//	    rating,
+//	    summary,
+//	    suggestions
+//	)
+//	VALUES (?, ?, ?, ?)
+//	RETURNING id, score, rating, summary, json(suggestions), created_at, updated_at
 func (q *Queries) CreateFeedback(ctx context.Context, arg CreateFeedbackParams) (Feedback, error) {
-	row := q.db.QueryRowContext(ctx, createFeedback,
+	row := q.queryRow(ctx, q.createFeedbackStmt, createFeedback,
 		arg.Score,
 		arg.Rating,
 		arg.Summary,
@@ -54,8 +64,13 @@ FROM feedbacks
 WHERE id = ?
 `
 
+// GetFeedbackById
+//
+//	SELECT id, score, rating, summary, json(suggestions), created_at, updated_at
+//	FROM feedbacks
+//	WHERE id = ?
 func (q *Queries) GetFeedbackById(ctx context.Context, id int64) (Feedback, error) {
-	row := q.db.QueryRowContext(ctx, getFeedbackById, id)
+	row := q.queryRow(ctx, q.getFeedbackByIdStmt, getFeedbackById, id)
 	var i Feedback
 	err := row.Scan(
 		&i.ID,

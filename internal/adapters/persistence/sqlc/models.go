@@ -10,58 +10,50 @@ import (
 )
 
 type Attempt struct {
-	ID              int64
-	UserChallengeID int64
-	FeedbackID      interface{}
-	Status          string
-	CreatedAt       time.Time
-	UpdatedAt       time.Time
+	ID          int64      `json:"id"`
+	ChallengeID int64      `json:"challenge_id"`
+	FeedbackID  *int64     `json:"feedback_id"`
+	Status      string     `json:"status"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	CompletedAt *time.Time `json:"completed_at"`
 }
 
 type Challenge struct {
-	ID            int64
-	Name          string
-	Description   string
-	Difficulty    int64
-	Type          string
-	TargetPattern string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            int64     `json:"id"`
+	Name          string    `json:"name"`
+	Description   string    `json:"description"`
+	Difficulty    int64     `json:"difficulty"`
+	Type          string    `json:"type"`
+	TargetPattern string    `json:"target_pattern"`
+	UserID        int64     `json:"user_id"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type Clue struct {
-	ID            int64
-	ChallengeID   int64
-	Description   string
-	SequenceOrder int64
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            int64     `json:"id"`
+	ChallengeID   int64     `json:"challenge_id"`
+	Description   string    `json:"description"`
+	SequenceOrder int64     `json:"sequence_order"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 }
 
 type Feedback struct {
-	ID          int64
-	Score       int64
-	Rating      int64
-	Summary     string
-	Suggestions json.RawMessage
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          int64           `json:"id"`
+	Score       int64           `json:"score"`
+	Rating      int64           `json:"rating"`
+	Summary     string          `json:"summary"`
+	Suggestions json.RawMessage `json:"suggestions"`
+	CreatedAt   time.Time       `json:"created_at"`
+	UpdatedAt   time.Time       `json:"updated_at"`
 }
 
 type User struct {
-	ID        int64
-	Username  string
-	Email     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-type UserChallenge struct {
-	ID          int64
-	UserID      int64
-	ChallengeID int64
-	Status      string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	CompletedAt interface{}
+	ID        int64     `json:"id"`
+	Username  string    `json:"username"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }

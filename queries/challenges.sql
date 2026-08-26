@@ -4,9 +4,10 @@ INSERT INTO challenges (
     description,
     difficulty,
     type,
-    target_pattern
+    target_pattern,
+    user_id
 )
-VALUES (?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?)
 RETURNING *;
 
 -- name: GetChallengeById :one

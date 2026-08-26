@@ -27,3 +27,8 @@ SET username = ?, email = ?
 WHERE id = ?
 RETURNING *;
 
+-- name: ListUserChallenges :many
+SELECT *
+FROM challenges
+WHERE user_id = ?
+ORDER BY created_at DESC;

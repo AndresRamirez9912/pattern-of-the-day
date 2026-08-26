@@ -20,13 +20,22 @@ RETURNING id, challenge_id, description, sequence_order, created_at, updated_at
 `
 
 type CreateClueParams struct {
-	ChallengeID   int64
-	Description   string
-	SequenceOrder int64
+	ChallengeID   int64  `json:"challenge_id"`
+	Description   string `json:"description"`
+	SequenceOrder int64  `json:"sequence_order"`
 }
 
+// CreateClue
+//
+//	INSERT INTO clues (
+//	    challenge_id,
+//	    description,
+//	    sequence_order
+//	)
+//	VALUES (?, ?, ?)
+//	RETURNING id, challenge_id, description, sequence_order, created_at, updated_at
 func (q *Queries) CreateClue(ctx context.Context, arg CreateClueParams) (Clue, error) {
-	row := q.db.QueryRowContext(ctx, createClue, arg.ChallengeID, arg.Description, arg.SequenceOrder)
+	row := q.queryRow(ctx, q.createClueStmt, createClue, arg.ChallengeID, arg.Description, arg.SequenceOrder)
 	var i Clue
 	err := row.Scan(
 		&i.ID,
@@ -46,8 +55,57 @@ WHERE challenge_id = ?
 ORDER BY sequence_order ASC
 `
 
+// GetCluesByChallengeId
+//
+//	SELECT id, challenge_id, description, sequence_order, created_at, updated_at
+//	FROM clues
+//	WHERE challenge_id = ?
+//	ORDER BY sequence_order ASC
 func (q *Queries) GetCluesByChallengeId(ctx context.Context, challengeID int64) ([]Clue, error) {
-	rows, err := q.db.QueryContext(ctx, getCluesByChallengeId, challengeID)
+	rows, err := q.query(ctx, q.getCluesByChallengeIdStmt, getCluesByChallengeId, challengeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Clue
+	for rows.Next() {
+		var i Clue
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChallengeID,
+			&i.Description,
+			&i.SequenceOrder,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCluesByChallengeId = `-- name: ListCluesByChallengeId :many
+SELECT id, challenge_id, description, sequence_order, created_at, updated_at
+FROM clues
+WHERE challenge_id = ?
+ORDER BY sequence_order ASC
+`
+
+// ListCluesByChallengeId
+//
+//	SELECT id, challenge_id, description, sequence_order, created_at, updated_at
+//	FROM clues
+//	WHERE challenge_id = ?
+//	ORDER BY sequence_order ASC
+func (q *Queries) ListCluesByChallengeId(ctx context.Context, challengeID int64) ([]Clue, error) {
+	rows, err := q.query(ctx, q.listCluesByChallengeIdStmt, listCluesByChallengeId, challengeID)
 	if err != nil {
 		return nil, err
 	}
