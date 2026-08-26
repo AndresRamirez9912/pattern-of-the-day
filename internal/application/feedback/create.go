@@ -25,9 +25,9 @@ func NewCreateFeedbackUseCase(logger app.Logger, feedbackRepository ports.Feedba
 }
 
 // Execute generates feedback for a given attempt and solution path, saves it to the repository, and returns the feedback.
-func (c *CreateFeedbackUseCase) Execute(ctx context.Context, attempt *domain.Attempt, solutionPath string) (*domain.Feedback, error) {
+func (c *CreateFeedbackUseCase) Execute(ctx context.Context, attempt *domain.Attempt, challenge *domain.Challenge, solutionPath string) (*domain.Feedback, error) {
 	// Generate feedback using the LLM provider
-	feedback, err := c.llmProvider.EvaluateSolution(ctx, attempt, solutionPath)
+	feedback, err := c.llmProvider.EvaluateSolution(ctx, attempt, challenge, solutionPath)
 	if err != nil {
 		c.logger.Error("Failed to generate feedback", "error", err)
 		return nil, err
