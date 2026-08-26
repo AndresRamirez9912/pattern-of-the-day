@@ -8,12 +8,12 @@ type Challenge struct {
 	Dificulty   Difficulty
 	Type        ChallengeType
 	Pattern     Pattern
-	Status      ChallengeStatus
 	Clues       []Clue
+	UserId      int64
 }
 
 // NewChallenge creates a new challenge with the given parameters
-func NewChallenge(id int64, name, description string, difficulty Difficulty, challengeType ChallengeType, pattern Pattern) *Challenge {
+func NewChallenge(id int64, name, description string, difficulty Difficulty, challengeType ChallengeType, pattern Pattern, userId int64) *Challenge {
 	return &Challenge{
 		Id:          id,
 		Name:        name,
@@ -21,8 +21,8 @@ func NewChallenge(id int64, name, description string, difficulty Difficulty, cha
 		Dificulty:   difficulty,
 		Type:        challengeType,
 		Pattern:     pattern,
-		Status:      ChallengeStatusPending,
 		Clues:       []Clue{},
+		UserId:      userId,
 	}
 }
 
@@ -74,25 +74,6 @@ const (
 	TemplateMethodPattern        Pattern = "template-method"
 	VisitorPattern               Pattern = "visitor"
 )
-
-// Status is a custom type to define the status of a challenge
-type ChallengeStatus string
-
-// List of supported challenge status
-const (
-	ChallengeStatusPending   ChallengeStatus = "pending"
-	ChallengeStatusCompleted ChallengeStatus = "completed"
-)
-
-// IsFinished checks if the challenge is finished
-func (c Challenge) IsFinished() bool {
-	return c.Status == ChallengeStatusCompleted
-}
-
-// Complete marks the challenge as completed
-func (c *Challenge) Complete() {
-	c.Status = ChallengeStatusCompleted
-}
 
 // AddClue adds a clue to the challenge
 func (c *Challenge) AddClue(clue Clue) error {

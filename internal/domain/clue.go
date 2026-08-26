@@ -2,12 +2,16 @@ package domain
 
 // Clue represents a clue for a challenge
 type Clue struct {
-	Description string
+	Id            int64
+	Description   string
+	SequenceOrder int
 }
 
 // NewClue creates a new clue with the given description
-func NewClue(description string) *Clue {
+func NewClue(id int64, description string, sequence int) *Clue {
 	return &Clue{
-		Description: description,
+		Id:            id,
+		Description:   description,
+		SequenceOrder: sequence,
 	}
 }
