@@ -12,7 +12,7 @@ func (a *App) bootstrapDatabase() error {
 	// The file "app.db" is automatically created if it does not exist.
 	db, err := sql.Open("sqlite", "./app.db")
 	if err != nil {
-		a.logger.Error("error opening DB connection", "error", err.Error())
+		a.Logger.Error("error opening DB connection", "error", err.Error())
 
 		return err
 	}
@@ -24,7 +24,7 @@ func (a *App) bootstrapDatabase() error {
 	// Validate the connection to the database by pinging it
 	err = db.Ping()
 	if err != nil {
-		a.logger.Error("error pinging DB connection", "error", err.Error())
+		a.Logger.Error("error pinging DB connection", "error", err.Error())
 
 		return err
 	}

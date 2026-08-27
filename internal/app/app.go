@@ -15,10 +15,10 @@ type App struct {
 	Ctx context.Context
 	// db is the database connection
 	db *sql.DB
-	// services contains the services layer of the application
+	// Services contains the services layer of the application
 	Services *Services
-	// logger is the application logger
-	logger *Logger
+	// Logger is the application logger
+	Logger *Logger
 }
 
 // NewApp creates a new instance of the application with the provided configuration and context
@@ -30,7 +30,7 @@ func NewApp(cfg *config.AppConfig, ctx context.Context) (*App, error) {
 	}
 
 	// Create the app logger
-	app.logger = NewLogger("app", INFO, false, false)
+	app.Logger = NewLogger("app", INFO, false, false)
 
 	// Initialize the connection with the DB
 	err := app.bootstrapDatabase()
@@ -39,7 +39,7 @@ func NewApp(cfg *config.AppConfig, ctx context.Context) (*App, error) {
 	}
 
 	// Initialize services with the provided configuration
-	app.Services = app.newServices(cfg, app.logger)
+	app.Services = app.newServices(cfg, app.Logger)
 
 	return app, nil
 }
@@ -50,7 +50,7 @@ func (a *App) GracefulShutdown() error {
 	if a.db != nil {
 		err := a.db.Close()
 		if err != nil {
-			a.logger.Error("error closing DB connection", "error", err.Error())
+			a.Logger.Error("error closing DB connection", "error", err.Error())
 			return err
 		}
 	}
