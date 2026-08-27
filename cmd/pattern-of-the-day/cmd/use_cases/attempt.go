@@ -55,7 +55,7 @@ Ejemplo:
 				return err
 			}
 
-			fmt.Printf("Intento creado (id=%d, challenge_id=%d, status=%s)\n", attempt.Id, challengeId, attempt.Status)
+			app.Logger.Info("intento creado", "id", attempt.Id, "challenge_id", challengeId, "status", attempt.Status, "sequence", attempt.SequenceOrder)
 
 			return nil
 		},

@@ -1,8 +1,6 @@
 package usecases
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -28,8 +26,8 @@ func CreateUserUseCaseCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create <username> <email>",
 		Short: "Create a new user",
-		Long: `Crea un nuevo usuario. El ID que devuelve es el que después vas a necesitar
-para crear challenges a nombre de ese usuario.
+		Long: `Crea un nuevo usuario. El username que elijas es el que después vas a
+necesitar para crear challenges a su nombre.
 
 Argumentos (obligatorios, en este orden):
   username  Nombre de usuario
@@ -55,7 +53,7 @@ Ejemplo:
 				return err
 			}
 
-			fmt.Printf("Usuario creado (id=%d): %s <%s>\n", createdUser.Id, createdUser.UserName, createdUser.Email)
+			app.Logger.Info("usuario creado", "id", createdUser.Id, "username", createdUser.UserName, "email", createdUser.Email)
 
 			return nil
 		},

@@ -28,13 +28,14 @@ func NewChallengeUseCaseCmd() *cobra.Command {
 // CreateChallengeUseCaseCmd creates the command for executing the create challenge use case.
 func CreateChallengeUseCaseCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create <user-id> <difficulty>",
+		Use:   "create <username> <difficulty>",
 		Short: "Generate a new challenge and its initial attempt",
 		Long: `Genera un nuevo reto usando el modelo de lenguaje configurado, y crea
 automáticamente el primer intento (attempt) pendiente para ese reto.
+Escribe los detalles del reto en challenge.md dentro de --out.
 
 Argumentos (obligatorios, en este orden):
-  user-id     ID numérico del usuario dueño del reto
+  username    Nombre de usuario dueño del reto
   difficulty  Dificultad del reto: easy, medium o hard
 
 Todo lo demás es opcional vía flags. Si no usas --topic, --type o --target,
@@ -43,14 +44,11 @@ retos variados sin tener que pensarlos. --target se elige acorde al --type
 resultante (por ejemplo, un patrón de diseño si el tipo es design-patterns).
 
 Ejemplos:
-  patternd use-cases challenge create 1 medium
-  patternd use-cases challenge create 1 hard --type design-patterns --target facade --topic "sistema de pagos"`,
+  patternd use-cases challenge create andres medium
+  patternd use-cases challenge create andres hard --type design-patterns --topic "sistema de pagos" --out ./mis-retos`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			userId, err := ParseStringId(args[0])
-			if err != nil {
-				return fmt.Errorf("user-id inválido %q: %w", args[0], err)
-			}
+			username := args[0]
 
 			difficulty, err := parseDifficulty(args[1])
 			if err != nil {
@@ -76,24 +74,25 @@ Ejemplos:
 				target = randomTarget(challengeType)
 			}
 
+			outDir := mustGetString(cmd, "out")
+
 			app := InitApp()
 			defer app.GracefulShutdown()
 
-			fmt.Printf("Generando challenge (tema=%q, dificultad=%s, tipo=%s, target=%q)...\n", topic, difficulty, challengeType, target)
+			app.Logger.Info("generando challenge", "topic", topic, "difficulty", difficulty, "type", challengeType)
 
-			createdChallenge, createdAttempt, err := app.Services.Challenge.CreateChallenge.Execute(app.Ctx, ports.ChallengeGenerationRequest{
+			createdChallenge, createdAttempt, err := app.Services.Challenge.CreateChallenge.Execute(app.Ctx, username, ports.ChallengeGenerationRequest{
 				Topic:      topic,
 				Difficulty: difficulty,
 				Target:     target,
 				Type:       challengeType,
-				UserId:     userId,
-			})
+			}, outDir)
 			if err != nil {
 				return err
 			}
 
-			fmt.Printf("Challenge creado (id=%d): %s\n", createdChallenge.Id, createdChallenge.Name)
-			fmt.Printf("Intento inicial creado (id=%d, status=%s)\n", createdAttempt.Id, createdAttempt.Status)
+			app.Logger.Info("challenge creado", "id", createdChallenge.Id, "name", createdChallenge.Name)
+			app.Logger.Info("intento inicial creado", "id", createdAttempt.Id, "status", createdAttempt.Status)
 
 			return nil
 		},
@@ -102,6 +101,7 @@ Ejemplos:
 	cmd.Flags().String("topic", "", "Topic of the challenge (random if omitted)")
 	cmd.Flags().String("type", "", "Challenge type: terraform, design-patterns or data-analytics (random if omitted)")
 	cmd.Flags().String("target", "", "Specific subject to evaluate within the type, e.g. facade (random if omitted)")
+	cmd.Flags().String("out", ".", "Output directory for challenge.md")
 
 	return cmd
 }

@@ -29,19 +29,21 @@ func CreateFeedbackUseCaseCmd() *cobra.Command {
 		Short: "Evaluate a submitted solution and close out an attempt",
 		Long: `Evalúa la solución entregada para un intento (attempt) usando el modelo de
 lenguaje configurado, guarda el feedback generado, y marca el intento como
-completado.
+completado. Escribe attempt-<N>-feedback.md dentro de --out, donde N es el
+número de intento de este challenge (no se sobreescribe el feedback de
+intentos anteriores).
 
 Argumentos (obligatorios, en este orden):
   attempt-id      ID numérico del intento que se está evaluando
-  solution-path   Ruta a la solución: un archivo .go o una carpeta con un
-                  proyecto Go completo
+  solution-path   Ruta a la solución: un archivo o una carpeta con un
+                  proyecto completo
 
 Uso:
   patternd use-cases feedback create <attempt-id> <solution-path>
 
 Ejemplos:
   patternd use-cases feedback create 7 ./mi-solucion
-  patternd use-cases feedback create 7 ./mi-solucion/main.go`,
+  patternd use-cases feedback create 7 ./mi-solucion/main.go --out ./mis-retos`,
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			attemptId, err := ParseStringId(args[0])
@@ -49,6 +51,7 @@ Ejemplos:
 				return fmt.Errorf("attempt-id inválido %q: %w", args[0], err)
 			}
 			solutionPath := args[1]
+			outDir := mustGetString(cmd, "out")
 
 			app := InitApp()
 			defer app.GracefulShutdown()
@@ -66,25 +69,26 @@ Ejemplos:
 				return err
 			}
 
-			fmt.Printf("Evaluando solución en %q para el intento %d...\n", solutionPath, attemptId)
+			app.Logger.Info("evaluando solución", "attempt_id", attemptId, "solution_path", solutionPath)
 
-			generatedFeedback, err := app.Services.Feedback.CreateFeedback.Execute(app.Ctx, attempt, challenge, solutionPath)
+			generatedFeedback, err := app.Services.Feedback.CreateFeedback.Execute(app.Ctx, attempt, challenge, solutionPath, outDir)
 			if err != nil {
 				return err
 			}
 
-			fmt.Printf("Feedback creado (id=%d, score=%d): %s\n", generatedFeedback.Id, generatedFeedback.Score, generatedFeedback.Summary)
-			if len(generatedFeedback.Suggestions) > 0 {
-				fmt.Println("Sugerencias:")
-				for _, suggestion := range generatedFeedback.Suggestions {
-					fmt.Printf("  - %s\n", suggestion)
-				}
+			app.Logger.Info("feedback creado", "id", generatedFeedback.Id, "score", generatedFeedback.Score, "summary", generatedFeedback.Summary)
+
+			for _, suggestion := range generatedFeedback.Suggestions {
+				app.Logger.Info("sugerencia", "text", suggestion)
 			}
-			fmt.Printf("Intento %d marcado como %s\n", attempt.Id, attempt.Status)
+
+			app.Logger.Info("intento actualizado", "id", attempt.Id, "status", attempt.Status)
 
 			return nil
 		},
 	}
+
+	cmd.Flags().String("out", ".", "Output directory for attempt-<N>-feedback.md")
 
 	return cmd
 }
