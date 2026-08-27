@@ -3,7 +3,7 @@ package persistence
 import (
 	"context"
 
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/persistence/sqlc"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/outbound/persistence/sqlc"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 )
