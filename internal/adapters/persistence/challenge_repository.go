@@ -27,17 +27,20 @@ func NewChallengeRepository(querier *sqlc.Queries) *ChallengeRepository {
 // SaveChallenge saves a challenge entity to the repository
 func (c *ChallengeRepository) SaveChallenge(ctx context.Context, challenge *domain.Challenge) error {
 	// Use the querier to create a new challenge in the database
-	_, err := c.querier.CreateChallenge(ctx, sqlc.CreateChallengeParams{
-		Name:          challenge.Name,
-		Description:   challenge.Description,
-		Difficulty:    string(challenge.Dificulty),
-		Type:          string(challenge.Type),
-		TargetPattern: string(challenge.Pattern),
-		UserID:        challenge.UserId,
+	saved, err := c.querier.CreateChallenge(ctx, sqlc.CreateChallengeParams{
+		Name:        challenge.Name,
+		Description: challenge.Description,
+		Difficulty:  string(challenge.Difficulty),
+		Type:        string(challenge.Type),
+		Target:      challenge.Target,
+		UserID:      challenge.UserId,
 	})
 	if err != nil {
 		return err
 	}
+
+	// Reflect the DB-generated ID back onto the domain entity
+	challenge.Id = saved.ID
 
 	return nil
 }
@@ -50,13 +53,31 @@ func (c *ChallengeRepository) GetChallengeByID(ctx context.Context, id int64) (*
 		return nil, err
 	}
 
+	// Fetch the clues associated with the challenge
+	clues, err := c.querier.GetCluesByChallengeId(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	domainClues := make([]domain.Clue, 0, len(clues))
+	for _, clue := range clues {
+		domainClues = append(domainClues, domain.Clue{
+			Id:            clue.ID,
+			Description:   clue.Description,
+			SequenceOrder: int(clue.SequenceOrder),
+		})
+	}
+
 	// Map the retrieved challenge to the domain model
 	return &domain.Challenge{
 		Id:          challenge.ID,
 		Name:        challenge.Name,
 		Description: challenge.Description,
-		Dificulty:   domain.Difficulty(challenge.Difficulty),
+		Difficulty:  domain.Difficulty(challenge.Difficulty),
 		Type:        domain.ChallengeType(challenge.Type),
+		Target:      challenge.Target,
+		UserId:      challenge.UserID,
+		Clues:       domainClues,
 	}, nil
 }
 
@@ -67,8 +88,9 @@ func (c *ChallengeRepository) UpdateChallenge(ctx context.Context, challenge *do
 		ID:          challenge.Id,
 		Name:        challenge.Name,
 		Description: challenge.Description,
-		Difficulty:  string(challenge.Dificulty),
+		Difficulty:  string(challenge.Difficulty),
 		Type:        string(challenge.Type),
+		Target:      challenge.Target,
 	})
 	if err != nil {
 		return err

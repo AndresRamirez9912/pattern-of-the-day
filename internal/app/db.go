@@ -12,7 +12,7 @@ func (a *App) bootstrapDatabase() error {
 	// The file "app.db" is automatically created if it does not exist.
 	db, err := sql.Open("sqlite", "./app.db")
 	if err != nil {
-		a.logger.Error("error openning DB connection", "error", err.Error())
+		a.logger.Error("error opening DB connection", "error", err.Error())
 
 		return err
 	}

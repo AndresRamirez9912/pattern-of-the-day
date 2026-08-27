@@ -25,13 +25,16 @@ func NewUserRepository(querier *sqlc.Queries) *UserRepository {
 // SaveUser saves a user entity to the repository
 func (u *UserRepository) SaveUser(ctx context.Context, user *domain.User) error {
 	// Use the querier to create a new user in the database
-	_, err := u.querier.CreateUser(ctx, sqlc.CreateUserParams{
+	saved, err := u.querier.CreateUser(ctx, sqlc.CreateUserParams{
 		Username: user.UserName,
 		Email:    user.Email,
 	})
 	if err != nil {
 		return err
 	}
+
+	// Reflect the DB-generated ID back onto the domain entity
+	user.Id = saved.ID
 
 	return nil
 }
@@ -82,9 +85,9 @@ func (u *UserRepository) ListUserChallenges(ctx context.Context, userId int64) (
 			Id:          challenge.ID,
 			Name:        challenge.Name,
 			Description: challenge.Description,
-			Dificulty:   domain.Difficulty(challenge.Difficulty),
+			Difficulty:  domain.Difficulty(challenge.Difficulty),
 			Type:        domain.ChallengeType(challenge.Type),
-			Pattern:     domain.Pattern(challenge.TargetPattern),
+			Target:      challenge.Target,
 			UserId:      challenge.UserID,
 			Clues:       domainClues,
 		})

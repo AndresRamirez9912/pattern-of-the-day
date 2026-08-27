@@ -33,8 +33,8 @@ func (f *FeedbackRepository) SaveFeedback(ctx context.Context, feedback *domain.
 	}
 
 	// Use the querier to insert the feedback into the database
-	_, err = f.querier.CreateFeedback(ctx, sqlc.CreateFeedbackParams{
-		Suggestions: suggestionsJSON,
+	saved, err := f.querier.CreateFeedback(ctx, sqlc.CreateFeedbackParams{
+		Suggestions: string(suggestionsJSON),
 		Summary:     feedback.Summary,
 		Score:       int64(feedback.Score),
 	})
@@ -42,30 +42,32 @@ func (f *FeedbackRepository) SaveFeedback(ctx context.Context, feedback *domain.
 		return err
 	}
 
+	// Reflect the DB-generated ID back onto the domain entity
+	feedback.Id = saved.ID
+
 	return nil
 }
 
-// GetFeedback retrieves the feedback entries from the repository
+// GetFeedback retrieves a feedback entry from the repository
 func (f *FeedbackRepository) GetFeedback(ctx context.Context, feedbackId int64) (*domain.Feedback, error) {
 	// Use the querier to retrieve the feedback entry from the database by its ID
-	feedbacks, err := f.querier.GetFeedbackById(ctx, feedbackId)
+	feedback, err := f.querier.GetFeedbackById(ctx, feedbackId)
 	if err != nil {
 		return nil, err
 	}
 
 	// Unmarshal suggestions from JSON
 	var suggestions []string
-	err = json.Unmarshal(feedbacks.Suggestions, &suggestions)
+	err = json.Unmarshal([]byte(feedback.Suggestions), &suggestions)
 	if err != nil {
 		return nil, err
 	}
 
-	// Return the feedback entrie as domain feedback entries
+	// Return the feedback entry as a domain feedback entity
 	return &domain.Feedback{
-		Id:          int(feedbacks.ID),
+		Id:          feedback.ID,
 		Suggestions: suggestions,
-		Score:       int(feedbacks.Score),
-		Summary:     feedbacks.Summary,
+		Score:       int(feedback.Score),
+		Summary:     feedback.Summary,
 	}, nil
-
 }

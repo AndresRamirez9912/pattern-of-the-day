@@ -27,7 +27,7 @@ func NewClueRepository(querier *sqlc.Queries) *ClueRepository {
 // SaveClue saves a clue entry to the repository related to a specific challenge ID
 func (c *ClueRepository) SaveClue(ctx context.Context, challengeId int64, clue *domain.Clue) error {
 	// Use the querier to create a new clue in the database
-	_, err := c.querier.CreateClue(ctx, sqlc.CreateClueParams{
+	saved, err := c.querier.CreateClue(ctx, sqlc.CreateClueParams{
 		ChallengeID:   challengeId,
 		Description:   clue.Description,
 		SequenceOrder: int64(clue.SequenceOrder),
@@ -35,6 +35,9 @@ func (c *ClueRepository) SaveClue(ctx context.Context, challengeId int64, clue *
 	if err != nil {
 		return err
 	}
+
+	// Reflect the DB-generated ID back onto the domain entity
+	clue.Id = saved.ID
 
 	return nil
 }
