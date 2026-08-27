@@ -27,13 +27,13 @@ func NewChallenge(id int64, name, description string, difficulty Difficulty, cha
 }
 
 // Difficulty is a custom type to define the supported challenge difficulty
-type Difficulty int64
+type Difficulty string
 
 // Supported challenge difficulty
 const (
-	Easy = iota
-	Medimum
-	Hard
+	ChallengeDifficultyEasy   = "easy"
+	ChallengeDifficultyMedium = "medium"
+	ChallengeDifficultyHard   = "hard"
 )
 
 // ChallengeType is a custom type to define which challenge types are supported

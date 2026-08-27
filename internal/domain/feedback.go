@@ -3,6 +3,8 @@ package domain
 // Feedback represents the feedback given to a user after completing a challenge or task
 // It contains information about the score, summary, and suggestions for improvement.
 type Feedback struct {
+	// Id is the identifier of the feedback entry
+	Id int
 	// Score is the score given to the feedback
 	Score int
 	// Summary is a brief summary of the feedback
