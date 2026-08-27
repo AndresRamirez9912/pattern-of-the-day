@@ -41,7 +41,7 @@ func challengeUserPrompt(req ports.ChallengeGenerationRequest) string {
 		"Genera un reto sobre el tema %q, dificultad %s, de tipo %s, enfocado en el patrón %s.\n"+
 			"Documentación de referencia del patrón (úsala para asegurar que la estructura y el propósito del reto sean fieles al patrón, no la cites textualmente): %s",
 		req.Topic,
-		difficultyLabel(req.Difficulty),
+		req.Difficulty,
 		req.Type,
 		req.Pattern,
 		patternReferenceURL(req.Pattern),
@@ -97,18 +97,4 @@ func feedbackUserPrompt(challenge *domain.Challenge, solutionCode string) string
 		patternReferenceURL(challenge.Pattern),
 		solutionCode,
 	)
-}
-
-// difficultyLabel renders a domain.Difficulty as a human-readable word for prompts.
-func difficultyLabel(d domain.Difficulty) string {
-	switch d {
-	case domain.Easy:
-		return "fácil"
-	case domain.Medimum:
-		return "medio"
-	case domain.Hard:
-		return "difícil"
-	default:
-		return "medio"
-	}
 }

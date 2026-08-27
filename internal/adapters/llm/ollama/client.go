@@ -15,20 +15,18 @@ const (
 // Client represents the Ollama client for interacting with the Ollama HTTP API.
 type Client struct {
 	BaseUrl string
-	Model   string
 	ApiKey  *string
 	Client  *http.Client
 }
 
 // NewClient creates a new instance of the Ollama client with the provided base URL and API key.
-func NewClient(baseUrl, model string, apiKey *string) *Client {
+func NewClient(baseUrl string, apiKey *string) *Client {
 	if strings.TrimSpace(baseUrl) == "" {
 		panic("Ollama base URL must be provided")
 	}
 
 	return &Client{
 		BaseUrl: baseUrl,
-		Model:   model,
 		ApiKey:  apiKey,
 		Client:  &http.Client{},
 	}
