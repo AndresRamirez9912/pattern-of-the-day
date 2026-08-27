@@ -2,6 +2,7 @@ package clue
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
@@ -26,6 +27,10 @@ func NewCreateClueUseCase(logger ports.Logger, llmProvider ports.LLMProvider, cl
 
 // Execute generates a new clue using the LLM provider and saves it to the ClueRepository
 func (g *CreateClueUseCase) Execute(ctx context.Context, challenge *domain.Challenge) (*domain.Clue, error) {
+	if !challenge.CanAddMoreClues() {
+		return nil, fmt.Errorf("challenge %d already has the maximum number of clues", challenge.Id)
+	}
+
 	// Generate a new clue using the LLM provider
 	clue, err := g.LLMProvider.GenerateClue(ctx, challenge)
 	if err != nil {

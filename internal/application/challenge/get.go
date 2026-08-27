@@ -1,0 +1,33 @@
+package challenge
+
+import (
+	"context"
+
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
+)
+
+// GetChallengeUseCase retrieves a single challenge, with its clues, by ID.
+type GetChallengeUseCase struct {
+	Logger              ports.Logger
+	ChallengeRepository ports.ChallengeRepository
+}
+
+// NewGetChallengeUseCase creates a new instance of GetChallengeUseCase
+func NewGetChallengeUseCase(logger ports.Logger, challengeRepository ports.ChallengeRepository) *GetChallengeUseCase {
+	return &GetChallengeUseCase{
+		Logger:              logger,
+		ChallengeRepository: challengeRepository,
+	}
+}
+
+// Execute retrieves a challenge by its ID from the ChallengeRepository
+func (g *GetChallengeUseCase) Execute(ctx context.Context, id int64) (*domain.Challenge, error) {
+	challenge, err := g.ChallengeRepository.GetChallengeByID(ctx, id)
+	if err != nil {
+		g.Logger.Error("error fetching challenge", "challenge_id", id, "error", err.Error())
+		return nil, err
+	}
+
+	return challenge, nil
+}

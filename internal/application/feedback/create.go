@@ -12,30 +12,51 @@ type CreateFeedbackUseCase struct {
 	logger             ports.Logger
 	feedbackRepository ports.FeedbackRepository
 	llmProvider        ports.LLMProvider
+	attemptRepository  ports.AttemptsRepository
 }
 
 // NewCreateFeedbackUseCase creates a new instance of CreateFeedbackUseCase
-func NewCreateFeedbackUseCase(logger ports.Logger, feedbackRepository ports.FeedbackRepository, llmProvider ports.LLMProvider) *CreateFeedbackUseCase {
+func NewCreateFeedbackUseCase(
+	logger ports.Logger,
+	feedbackRepository ports.FeedbackRepository,
+	llmProvider ports.LLMProvider,
+	attemptRepository ports.AttemptsRepository,
+) *CreateFeedbackUseCase {
 	return &CreateFeedbackUseCase{
 		logger:             logger,
 		feedbackRepository: feedbackRepository,
 		llmProvider:        llmProvider,
+		attemptRepository:  attemptRepository,
 	}
 }
 
-// Execute generates feedback for a given attempt and solution path, saves it to the repository, and returns the feedback.
+// Execute generates feedback for a given attempt and solution path, saves it to the repository,
+// links it to the attempt, and marks the attempt as completed.
 func (c *CreateFeedbackUseCase) Execute(ctx context.Context, attempt *domain.Attempt, challenge *domain.Challenge, solutionPath string) (*domain.Feedback, error) {
 	// Generate feedback using the LLM provider
 	feedback, err := c.llmProvider.EvaluateSolution(ctx, attempt, challenge, solutionPath)
 	if err != nil {
-		c.logger.Error("Failed to generate feedback", "error", err)
+		c.logger.Error("failed to generate feedback", "error", err.Error())
 		return nil, err
 	}
 
 	// Save the feedback to the repository
 	err = c.feedbackRepository.SaveFeedback(ctx, feedback)
 	if err != nil {
-		c.logger.Error("Failed to create feedback", "error", err)
+		c.logger.Error("failed to create feedback", "error", err.Error())
+		return nil, err
+	}
+
+	// Link the feedback to the attempt and mark it as completed
+	attempt.FeedbackId = &feedback.Id
+	if err := attempt.Complete(); err != nil {
+		c.logger.Error("failed to complete attempt", "attempt_id", attempt.Id, "error", err.Error())
+		return nil, err
+	}
+
+	err = c.attemptRepository.UpdateAttempt(ctx, attempt)
+	if err != nil {
+		c.logger.Error("failed to update attempt after feedback", "attempt_id", attempt.Id, "error", err.Error())
 		return nil, err
 	}
 
