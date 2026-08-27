@@ -70,11 +70,39 @@ func (a *App) newServices(cfg *config.AppConfig, logger *Logger) *Services {
 	fileWriter := filesystem.NewMarkdownWriter()
 
 	// Initialize use cases
-	userUseCase := a.createUser(logger, userRepository)
-	challengeUseCase := a.createChallenge(logger, ollamaProvider, challengeRepository, attemptRepository, userRepository, fileWriter)
-	clueUseCase := a.createClue(logger, ollamaProvider, clueRepository, fileWriter)
-	attemptsUseCase := a.createAttempt(logger, attemptRepository)
-	feedbackUseCase := a.createFeedback(logger, feedbackRepository, ollamaProvider, attemptRepository, fileWriter)
+	userUseCase := a.createUser(
+		logger.WithSection("section", "users"),
+		userRepository,
+	)
+
+	challengeUseCase := a.createChallenge(
+		logger.WithSection("section", "challenge"),
+		ollamaProvider,
+		challengeRepository,
+		attemptRepository,
+		userRepository,
+		fileWriter,
+	)
+
+	clueUseCase := a.createClue(
+		logger.WithSection("section", "clue"),
+		ollamaProvider,
+		clueRepository,
+		fileWriter,
+	)
+
+	attemptsUseCase := a.createAttempt(
+		logger.WithSection("section", "attempts"),
+		attemptRepository,
+	)
+
+	feedbackUseCase := a.createFeedback(
+		logger.WithSection("section", "feedback"),
+		feedbackRepository,
+		ollamaProvider,
+		attemptRepository,
+		fileWriter,
+	)
 
 	return &Services{
 		User:      userUseCase,
