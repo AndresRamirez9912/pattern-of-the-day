@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/filesystem"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/llm/ollama"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/persistence"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/persistence/sqlc"
@@ -65,12 +66,15 @@ func (a *App) newServices(cfg *config.AppConfig, logger *Logger) *Services {
 	ollamaClient := ollama.NewClient(cfg.Llm.BaseUrl, &cfg.Llm.ApiKey)
 	ollamaProvider := ollama.NewProvider(ollamaClient, cfg.Llm.Model, logger)
 
+	// Initialize the markdown file writer
+	fileWriter := filesystem.NewMarkdownWriter()
+
 	// Initialize use cases
 	userUseCase := a.createUser(logger, userRepository)
-	challengeUseCase := a.createChallenge(logger, ollamaProvider, challengeRepository, attemptRepository, userRepository)
-	clueUseCase := a.createClue(logger, ollamaProvider, clueRepository)
+	challengeUseCase := a.createChallenge(logger, ollamaProvider, challengeRepository, attemptRepository, userRepository, fileWriter)
+	clueUseCase := a.createClue(logger, ollamaProvider, clueRepository, fileWriter)
 	attemptsUseCase := a.createAttempt(logger, attemptRepository)
-	feedbackUseCase := a.createFeedback(logger, feedbackRepository, ollamaProvider, attemptRepository)
+	feedbackUseCase := a.createFeedback(logger, feedbackRepository, ollamaProvider, attemptRepository, fileWriter)
 
 	return &Services{
 		User:      userUseCase,
@@ -97,8 +101,9 @@ func (a *App) createChallenge(
 	challengeRepository ports.ChallengeRepository,
 	attemptsRepository ports.AttemptsRepository,
 	userRepository ports.UserRepository,
+	fileWriter ports.FileWriter,
 ) *ChallengeUseCases {
-	createChallenge := challenge.NewCreateChallengeUseCase(logger, ollamaProvider, challengeRepository, attemptsRepository, userRepository)
+	createChallenge := challenge.NewCreateChallengeUseCase(logger, ollamaProvider, challengeRepository, attemptsRepository, userRepository, fileWriter)
 	getChallenge := challenge.NewGetChallengeUseCase(logger, challengeRepository)
 
 	return &ChallengeUseCases{
@@ -108,8 +113,8 @@ func (a *App) createChallenge(
 }
 
 // createClue initializes the ClueUseCases with the required dependencies.
-func (a *App) createClue(logger ports.Logger, ollamaProvider ports.LLMProvider, clueRepository ports.ClueRepository) *ClueUseCases {
-	createClue := clue.NewCreateClueUseCase(logger, ollamaProvider, clueRepository)
+func (a *App) createClue(logger ports.Logger, ollamaProvider ports.LLMProvider, clueRepository ports.ClueRepository, fileWriter ports.FileWriter) *ClueUseCases {
+	createClue := clue.NewCreateClueUseCase(logger, ollamaProvider, clueRepository, fileWriter)
 
 	return &ClueUseCases{
 		CreateClue: createClue,
@@ -133,8 +138,9 @@ func (a *App) createFeedback(
 	feedbackRepository ports.FeedbackRepository,
 	ollamaProvider ports.LLMProvider,
 	attemptRepository ports.AttemptsRepository,
+	fileWriter ports.FileWriter,
 ) *FeedbackUseCases {
-	createFeedback := feedback.NewCreateFeedbackUseCase(logger, feedbackRepository, ollamaProvider, attemptRepository)
+	createFeedback := feedback.NewCreateFeedbackUseCase(logger, feedbackRepository, ollamaProvider, attemptRepository, fileWriter)
 
 	return &FeedbackUseCases{
 		CreateFeedback: createFeedback,
