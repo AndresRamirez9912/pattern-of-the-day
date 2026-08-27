@@ -3,7 +3,6 @@ package attempt
 import (
 	"context"
 
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/utils"
@@ -11,12 +10,12 @@ import (
 
 // CreateAttemptUseCase handles the creation of a new attempt in the application
 type CreateAttemptUseCase struct {
-	Logger            app.Logger
+	Logger            ports.Logger
 	AttemptRepository ports.AttemptsRepository
 }
 
 // NewCreateAttemptUseCase creates a new instance of CreateAttemptUseCase
-func NewCreateAttemptUseCase(logger app.Logger, attemptRepository ports.AttemptsRepository) *CreateAttemptUseCase {
+func NewCreateAttemptUseCase(logger ports.Logger, attemptRepository ports.AttemptsRepository) *CreateAttemptUseCase {
 	return &CreateAttemptUseCase{
 		Logger:            logger,
 		AttemptRepository: attemptRepository,

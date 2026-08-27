@@ -3,19 +3,18 @@ package user
 import (
 	"context"
 
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 )
 
 // CreateUserUseCase handles the creation of a new user in the application
 type CreateUserUseCase struct {
-	Logger         app.Logger
+	Logger         ports.Logger
 	UserRepository ports.UserRepository
 }
 
 // NewCreateUserUseCase creates a new instance of CreateUserUseCase
-func NewCreateUserUseCase(logger app.Logger, userRepository ports.UserRepository) *CreateUserUseCase {
+func NewCreateUserUseCase(logger ports.Logger, userRepository ports.UserRepository) *CreateUserUseCase {
 	return &CreateUserUseCase{
 		Logger:         logger,
 		UserRepository: userRepository,

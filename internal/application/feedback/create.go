@@ -3,20 +3,19 @@ package feedback
 import (
 	"context"
 
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 )
 
 // CreateFeedbackUseCase handles the creation of a new feedback in the application
 type CreateFeedbackUseCase struct {
-	logger             app.Logger
+	logger             ports.Logger
 	feedbackRepository ports.FeedbackRepository
 	llmProvider        ports.LLMProvider
 }
 
 // NewCreateFeedbackUseCase creates a new instance of CreateFeedbackUseCase
-func NewCreateFeedbackUseCase(logger app.Logger, feedbackRepository ports.FeedbackRepository, llmProvider ports.LLMProvider) *CreateFeedbackUseCase {
+func NewCreateFeedbackUseCase(logger ports.Logger, feedbackRepository ports.FeedbackRepository, llmProvider ports.LLMProvider) *CreateFeedbackUseCase {
 	return &CreateFeedbackUseCase{
 		logger:             logger,
 		feedbackRepository: feedbackRepository,

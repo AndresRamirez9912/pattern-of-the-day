@@ -3,7 +3,6 @@ package clue
 import (
 	"context"
 
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 )
@@ -11,13 +10,13 @@ import (
 // CreateClueUseCase is responsible for generating a new clue using the
 // LLM provider and saving it to the ClueRepository
 type CreateClueUseCase struct {
-	Logger         app.Logger
+	Logger         ports.Logger
 	LLMProvider    ports.LLMProvider
 	ClueRepository ports.ClueRepository
 }
 
 // NewCreateClueUseCase creates a new instance of GenerateClueUseCase with the provided LLMProvider and ClueRepository
-func NewCreateClueUseCase(logger app.Logger, llmProvider ports.LLMProvider, clueRepository ports.ClueRepository) *CreateClueUseCase {
+func NewCreateClueUseCase(logger ports.Logger, llmProvider ports.LLMProvider, clueRepository ports.ClueRepository) *CreateClueUseCase {
 	return &CreateClueUseCase{
 		Logger:         logger,
 		LLMProvider:    llmProvider,
