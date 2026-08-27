@@ -30,7 +30,7 @@ func (c *ChallengeRepository) SaveChallenge(ctx context.Context, challenge *doma
 	_, err := c.querier.CreateChallenge(ctx, sqlc.CreateChallengeParams{
 		Name:          challenge.Name,
 		Description:   challenge.Description,
-		Difficulty:    int64(challenge.Dificulty),
+		Difficulty:    string(challenge.Dificulty),
 		Type:          string(challenge.Type),
 		TargetPattern: string(challenge.Pattern),
 		UserID:        challenge.UserId,
@@ -67,7 +67,7 @@ func (c *ChallengeRepository) UpdateChallenge(ctx context.Context, challenge *do
 		ID:          challenge.Id,
 		Name:        challenge.Name,
 		Description: challenge.Description,
-		Difficulty:  int64(challenge.Dificulty),
+		Difficulty:  string(challenge.Dificulty),
 		Type:        string(challenge.Type),
 	})
 	if err != nil {
