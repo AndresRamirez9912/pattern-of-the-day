@@ -8,8 +8,8 @@ import (
 
 // LLMProvider defines the interface for interacting with a Large Language Model (LLM) provider
 type LLMProvider interface {
-	// GenerateChallenge generates a new challenge using the LLM provider with the
-	GenerateChallente(ctx context.Context, req ChallengeGenerationRequest) (*domain.Challenge, error)
+	// GenerateChallenge generates a new challenge using the LLM provider
+	GenerateChallenge(ctx context.Context, req ChallengeGenerationRequest) (*domain.Challenge, error)
 	// EvaluateSolution evaluates a solution for a given challenge using the LLM provider and returns feedback
 	EvaluateSolution(ctx context.Context, attempt *domain.Attempt, challenge *domain.Challenge, solutionPath string) (*domain.Feedback, error)
 	// GenerateClue generates a clue for a given challenge using the LLM provider and returns the clue
@@ -20,7 +20,8 @@ type LLMProvider interface {
 type ChallengeGenerationRequest struct {
 	Topic      string
 	Difficulty domain.Difficulty
-	Pattern    domain.Pattern
-	Type       domain.ChallengeType
-	UserId     int64
+	// Target is the specific subject to evaluate within Type
+	Target string
+	Type   domain.ChallengeType
+	UserId int64
 }
