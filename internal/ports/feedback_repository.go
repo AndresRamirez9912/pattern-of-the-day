@@ -10,6 +10,6 @@ import (
 type FeedbackRepository interface {
 	// SaveFeedback saves a feedback entry to the repository
 	SaveFeedback(ctx context.Context, feedback *domain.Feedback) error
-	// GetFeedbacks retrieves all feedback entries from the repository
-	GetFeedbacks(ctx context.Context) ([]*domain.Feedback, error)
+	// GetFeedback retrieves the feedback entrie from the repository
+	GetFeedback(ctx context.Context, feedbackId int64) (*domain.Feedback, error)
 }
