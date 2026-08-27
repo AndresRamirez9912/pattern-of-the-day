@@ -17,8 +17,10 @@ type Challenge struct {
 	UserId int64
 }
 
-// NewChallenge creates a new challenge with the given parameters
-func NewChallenge(id int64, name, description string, difficulty Difficulty, challengeType ChallengeType, target string, userId int64) *Challenge {
+// NewChallenge creates a new challenge with the given parameters. UserId is
+// left unset — a freshly generated challenge has no owner yet, that's
+// assigned separately once the requesting user has been resolved.
+func NewChallenge(id int64, name, description string, difficulty Difficulty, challengeType ChallengeType, target string) *Challenge {
 	return &Challenge{
 		Id:          id,
 		Name:        name,
@@ -27,7 +29,6 @@ func NewChallenge(id int64, name, description string, difficulty Difficulty, cha
 		Type:        challengeType,
 		Target:      target,
 		Clues:       []Clue{},
-		UserId:      userId,
 	}
 }
 

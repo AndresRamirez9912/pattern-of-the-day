@@ -8,6 +8,9 @@ type Attempt struct {
 	FeedbackId  *int64
 	ChallengeId *int64
 	Status      AttemptStatus
+	// SequenceOrder is this attempt's position among every attempt made for
+	// its challenge.
+	SequenceOrder int
 }
 
 // AttemptStatus is a custom type to define the supported attempt status
