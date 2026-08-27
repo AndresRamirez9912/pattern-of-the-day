@@ -1,6 +1,8 @@
 package usecases
 
 import (
+	"fmt"
+
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 	"github.com/spf13/cobra"
@@ -12,11 +14,8 @@ func NewChallengeUseCaseCmd() *cobra.Command {
 		Use:   "challenge",
 		Short: "Execute challenge-related use cases",
 		Long:  "This command allows you to execute challenge-related use cases within the application.",
-		Run: func(cmd *cobra.Command, args []string) {
-			err := cmd.Help()
-			if err != nil {
-				panic(err)
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
 		},
 	}
 
@@ -29,62 +28,87 @@ func NewChallengeUseCaseCmd() *cobra.Command {
 // CreateChallengeUseCaseCmd creates the command for executing the create challenge use case.
 func CreateChallengeUseCaseCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Execute the create challenge use case",
-		// Create a long description adding the information requested based on the position
-		Long: `This command allows you to create a new challenge by specifying the topic, 
-difficulty, pattern, type, and user ID as command-line arguments.
+		Use:   "create <user-id> <difficulty>",
+		Short: "Generate a new challenge and its initial attempt",
+		Long: `Genera un nuevo reto usando el modelo de lenguaje configurado, y crea
+automáticamente el primer intento (attempt) pendiente para ese reto.
 
-Order:
-pattern-of-the-day challenge create [topic] [difficulty] [pattern] [type] [user ID]
+Argumentos (obligatorios, en este orden):
+  user-id     ID numérico del usuario dueño del reto
+  difficulty  Dificultad del reto: easy, medium o hard
 
-Where:
-[topic]      The topic of the challenge
-[difficulty] The difficulty level of the challenge (e.g., easy, medium, hard)
-[pattern]    The pattern associated with the challenge (e,g Builder, Singleton...)
-[type]       The type of the challenge (e.g., creational, structural, behavioral)
-[user ID]    The ID of the user creating the challenge
+Todo lo demás es opcional vía flags. Si no usas --topic, --type o --target,
+se elige un valor aleatorio para cada uno que omitas, así puedes generar
+retos variados sin tener que pensarlos. --target se elige acorde al --type
+resultante (por ejemplo, un patrón de diseño si el tipo es design-patterns).
 
-Example:
-pattern-of-the-day challenge create "Design Patterns" 1 "Singleton" "creational" "user123"
+Ejemplos:
+  patternd use-cases challenge create 1 medium
+  patternd use-cases challenge create 1 hard --type design-patterns --target facade --topic "sistema de pagos"`,
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			userId, err := ParseStringId(args[0])
+			if err != nil {
+				return fmt.Errorf("user-id inválido %q: %w", args[0], err)
+			}
 
-Note:
-Ensure that all required arguments are provided in the correct order.
-		`,
-		Run: func(cmd *cobra.Command, args []string) {
-			// Initialize the application
+			difficulty, err := parseDifficulty(args[1])
+			if err != nil {
+				return err
+			}
+
+			topic, _ := cmd.Flags().GetString("topic")
+			if !cmd.Flags().Changed("topic") {
+				topic = randomTopic()
+			}
+
+			challengeType := domain.ChallengeType(mustGetString(cmd, "type"))
+			if cmd.Flags().Changed("type") {
+				if !isValidChallengeType(challengeType) {
+					return fmt.Errorf("type inválido %q", challengeType)
+				}
+			} else {
+				challengeType = randomChallengeType()
+			}
+
+			target := mustGetString(cmd, "target")
+			if !cmd.Flags().Changed("target") {
+				target = randomTarget(challengeType)
+			}
+
 			app := InitApp()
 			defer app.GracefulShutdown()
 
-			// Read topic, difficulty, pattern, type, and user ID from command positions
-			topic := args[0]
-			difficulty := args[1]
-			pattern := args[2]
-			challengeType := args[3]
-			userId := args[4]
+			fmt.Printf("Generando challenge (tema=%q, dificultad=%s, tipo=%s, target=%q)...\n", topic, difficulty, challengeType, target)
 
-			// Parse the string userId to int64
-			parsedUserId, err := ParseStringId(userId)
-			if err != nil {
-				panic(err)
-			}
-
-			// Implement the use case for creating a user
-			_, err = app.Services.Challenge.CreateChallenge.Execute(app.Ctx, ports.ChallengeGenerationRequest{
+			createdChallenge, createdAttempt, err := app.Services.Challenge.CreateChallenge.Execute(app.Ctx, ports.ChallengeGenerationRequest{
 				Topic:      topic,
-				Difficulty: domain.Difficulty(difficulty),
-				Pattern:    domain.Pattern(pattern),
-				Type:       domain.ChallengeType(challengeType),
-				UserId:     parsedUserId,
+				Difficulty: difficulty,
+				Target:     target,
+				Type:       challengeType,
+				UserId:     userId,
 			})
 			if err != nil {
-				panic(err)
+				return err
 			}
 
-			// Print a success message or perform any other necessary actions
-			println("Challenge created successfully")
+			fmt.Printf("Challenge creado (id=%d): %s\n", createdChallenge.Id, createdChallenge.Name)
+			fmt.Printf("Intento inicial creado (id=%d, status=%s)\n", createdAttempt.Id, createdAttempt.Status)
+
+			return nil
 		},
 	}
 
+	cmd.Flags().String("topic", "", "Topic of the challenge (random if omitted)")
+	cmd.Flags().String("type", "", "Challenge type: terraform, design-patterns or data-analytics (random if omitted)")
+	cmd.Flags().String("target", "", "Specific subject to evaluate within the type, e.g. facade (random if omitted)")
+
 	return cmd
+}
+
+// mustGetString reads a string flag, ignoring the (never-populated) error
+// cobra returns for a flag that was registered on the same command.
+func mustGetString(cmd *cobra.Command, name string) string {
+	value, _ := cmd.Flags().GetString(name)
+	return value
 }

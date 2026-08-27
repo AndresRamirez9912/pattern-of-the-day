@@ -1,6 +1,8 @@
 package usecases
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -10,11 +12,8 @@ func NewUsersUseCaseCmd() *cobra.Command {
 		Use:   "users",
 		Short: "Execute user-related use cases",
 		Long:  "This command allows you to execute user-related use cases within the application.",
-		Run: func(cmd *cobra.Command, args []string) {
-			err := cmd.Help()
-			if err != nil {
-				panic(err)
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
 		},
 	}
 
@@ -25,34 +24,42 @@ func NewUsersUseCaseCmd() *cobra.Command {
 }
 
 // CreateUserUseCaseCmd creates the command for executing the create user use case.
-// This commands fetches the
 func CreateUserUseCaseCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create",
-		Short: "Execute the create user use case",
-		Long:  "This command allows you to execute the create user use case within the application.",
-		Run: func(cmd *cobra.Command, args []string) {
+		Use:   "create <username> <email>",
+		Short: "Create a new user",
+		Long: `Crea un nuevo usuario. El ID que devuelve es el que después vas a necesitar
+para crear challenges a nombre de ese usuario.
+
+Argumentos (obligatorios, en este orden):
+  username  Nombre de usuario
+  email     Correo del usuario
+
+Uso:
+  patternd use-cases users create <username> <email>
+
+Ejemplo:
+  patternd use-cases users create andres andres@example.com`,
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			username := args[0]
+			email := args[1]
+
 			// Initialize the application
 			app := InitApp()
 			defer app.GracefulShutdown()
 
-			// Read username and email from command flags
-			username, _ := cmd.Flags().GetString("username")
-			email, _ := cmd.Flags().GetString("email")
-
-			// Implement the use case for creating a user
-			_, err := app.Services.User.CreateUser.Execute(app.Ctx, username, email)
+			// Execute the use case for creating a user
+			createdUser, err := app.Services.User.CreateUser.Execute(app.Ctx, username, email)
 			if err != nil {
-				panic(err)
+				return err
 			}
 
-			// Print a success message or perform any other necessary actions
-			println("User created successfully")
+			fmt.Printf("Usuario creado (id=%d): %s <%s>\n", createdUser.Id, createdUser.UserName, createdUser.Email)
+
+			return nil
 		},
 	}
-	// Add flags for the create user use case
-	cmd.Flags().String("username", "", "Username of the new user")
-	cmd.Flags().String("email", "", "Email of the new user")
 
 	return cmd
 }

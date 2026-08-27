@@ -15,17 +15,17 @@ func NewUseCasesRootCmd() *cobra.Command {
 		Use:   "use-cases",
 		Short: "Execute the specific use case",
 		Long:  "This command allows you to execute a specific use case within the application.",
-		Run: func(cmd *cobra.Command, args []string) {
-			err := cmd.Help()
-			if err != nil {
-				panic(err)
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return cmd.Help()
 		},
 	}
 
 	// Add subcommands for specific use cases here
 	rootCmd.AddCommand(NewUsersUseCaseCmd())
 	rootCmd.AddCommand(NewChallengeUseCaseCmd())
+	rootCmd.AddCommand(NewClueUseCaseCmd())
+	rootCmd.AddCommand(NewAttemptUseCaseCmd())
+	rootCmd.AddCommand(NewFeedbackUseCaseCmd())
 
 	return rootCmd
 }
