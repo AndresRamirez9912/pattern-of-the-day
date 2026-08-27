@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
@@ -41,7 +42,31 @@ func NewCreateChallengeUseCase(
 
 // Execute generates a new challenge using the LLM provider, saves it to the ChallengeRepository,
 // creates the initial pending attempt for it, and writes challenge.md to outDir.
-func (c *CreateChallengeUseCase) Execute(ctx context.Context, userName string, req ports.ChallengeGenerationRequest, outDir string) (*domain.Challenge, *domain.Attempt, error) {
+func (c *CreateChallengeUseCase) Execute(
+	ctx context.Context,
+	userName string,
+	req ports.ChallengeGenerationRequest,
+	outDir string,
+) (*domain.Challenge, *domain.Attempt, error) {
+	// Validate the challenge type received
+	if !domain.IsValidChallengeType(req.Type) {
+		return nil, nil, fmt.Errorf("invalid challenge type %q", req.Type)
+	}
+
+	if req.Target == "" {
+		req.Target = randomTarget(req.Type)
+	}
+
+	if req.Topic == "" {
+		req.Topic = randomTopic()
+	}
+
+	if !domain.IsValidDifficulty(req.Difficulty) {
+		return nil, nil, fmt.Errorf("invalid difficulty %q", req.Difficulty)
+	}
+
+	c.Logger.Info("generating challenge", "topic", req.Topic, "type", req.Type, "difficulty", req.Difficulty)
+
 	// Validate the user received (must exist)
 	user, err := c.UserRepository.GetUserByUsername(ctx, userName)
 	if errors.Is(err, sql.ErrNoRows) {
