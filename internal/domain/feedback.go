@@ -4,7 +4,7 @@ package domain
 // It contains information about the score, summary, and suggestions for improvement.
 type Feedback struct {
 	// Id is the identifier of the feedback entry
-	Id int
+	Id int64
 	// Score is the score given to the feedback
 	Score int
 	// Summary is a brief summary of the feedback

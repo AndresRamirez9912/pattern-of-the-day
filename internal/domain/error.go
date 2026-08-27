@@ -17,7 +17,7 @@ func NewError(message string, code int) *Error {
 	}
 }
 
-// Error returns the error message for SimpleError
+// Error returns the error message for Error
 func (e Error) Error() string {
 	return e.Message
 }

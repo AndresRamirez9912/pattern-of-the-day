@@ -32,3 +32,9 @@ func (a *Attempt) Complete() error {
 
 	return nil
 }
+
+// IsClosed reports whether the attempt has reached a terminal state and no
+// longer counts as "in progress" for the challenge it belongs to.
+func (a *Attempt) IsClosed() bool {
+	return a.Status == AttemptStatusCompleted || a.Status == AttemptStatusFailed
+}

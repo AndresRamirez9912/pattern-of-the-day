@@ -1,26 +1,31 @@
 package domain
 
+// maxClues is the maximum number of clues a challenge can have.
+const maxClues = 3
+
 // Challenge defines the properties of a challenge
 type Challenge struct {
 	Id          int64
 	Name        string
 	Description string
-	Dificulty   Difficulty
-	Type        ChallengeType
-	Pattern     Pattern
-	Clues       []Clue
-	UserId      int64
+	Difficulty  Difficulty
+	// Type indicates the subject area the challenge covers
+	Type ChallengeType
+	// Target is the specific subject the challenge evaluates
+	Target string
+	Clues  []Clue
+	UserId int64
 }
 
 // NewChallenge creates a new challenge with the given parameters
-func NewChallenge(id int64, name, description string, difficulty Difficulty, challengeType ChallengeType, pattern Pattern, userId int64) *Challenge {
+func NewChallenge(id int64, name, description string, difficulty Difficulty, challengeType ChallengeType, target string, userId int64) *Challenge {
 	return &Challenge{
 		Id:          id,
 		Name:        name,
 		Description: description,
-		Dificulty:   difficulty,
+		Difficulty:  difficulty,
 		Type:        challengeType,
-		Pattern:     pattern,
+		Target:      target,
 		Clues:       []Clue{},
 		UserId:      userId,
 	}
@@ -31,57 +36,32 @@ type Difficulty string
 
 // Supported challenge difficulty
 const (
-	ChallengeDifficultyEasy   = "easy"
-	ChallengeDifficultyMedium = "medium"
-	ChallengeDifficultyHard   = "hard"
+	ChallengeDifficultyEasy   Difficulty = "easy"
+	ChallengeDifficultyMedium Difficulty = "medium"
+	ChallengeDifficultyHard   Difficulty = "hard"
 )
 
-// ChallengeType is a custom type to define which challenge types are supported
+// AllDifficulties returns every supported challenge difficulty.
+func AllDifficulties() []Difficulty {
+	return []Difficulty{ChallengeDifficultyEasy, ChallengeDifficultyMedium, ChallengeDifficultyHard}
+}
+
+// ChallengeType is a custom type to define which subject area a challenge covers.
 type ChallengeType string
 
 // Supported challenge types
 const (
-	CreationalChallengeType  ChallengeType = "creational"
-	StructuralChallengeType  ChallengeType = "structural"
-	BehaviouralChallengeType ChallengeType = "behavioural"
+	TerraformChallengeType      ChallengeType = "terraform"
+	DesignPatternsChallengeType ChallengeType = "design-patterns"
+	DataAnalyticsChallengeType  ChallengeType = "data-analytics"
 )
 
-// Pattern is a custom type to define which patterns are supported
-type Pattern string
+// AllChallengeTypes returns every supported challenge type.
+func AllChallengeTypes() []ChallengeType {
+	return []ChallengeType{TerraformChallengeType, DesignPatternsChallengeType, DataAnalyticsChallengeType}
+}
 
-// List of supported patterns
-const (
-	FactoryMethodPattern         Pattern = "factory-method"
-	AbstractFactoryPattern       Pattern = "abstract-factory"
-	BuilderPattern               Pattern = "builder"
-	PrototypePattern             Pattern = "prototype"
-	SingletonPattern             Pattern = "singleton"
-	AdapterPattern               Pattern = "adapter"
-	BridgePattern                Pattern = "bridge"
-	CompositePattern             Pattern = "composite"
-	DecoratorPattern             Pattern = "decorator"
-	FacadePattern                Pattern = "facade"
-	FlyweightPattern             Pattern = "flyweight"
-	ProxyPattern                 Pattern = "proxy"
-	ChainOfResponsibilityPattern Pattern = "chain-of-responsibility"
-	CommandPattern               Pattern = "command"
-	IteratorPattern              Pattern = "iterator"
-	MediatorPattern              Pattern = "mediator"
-	MementoPattern               Pattern = "memento"
-	ObserverPattern              Pattern = "observer"
-	StatePattern                 Pattern = "state"
-	StrategyPattern              Pattern = "strategy"
-	TemplateMethodPattern        Pattern = "template-method"
-	VisitorPattern               Pattern = "visitor"
-)
-
-// AddClue adds a clue to the challenge
-func (c *Challenge) AddClue(clue Clue) error {
-	// Only 3 clues can be generated for a challenge
-	if len(c.Clues) >= 3 {
-		return ErrMaxCluesReached
-	}
-
-	c.Clues = append(c.Clues, clue)
-	return nil
+// CanAddMoreClues reports whether the challenge can still receive another clue
+func (c *Challenge) CanAddMoreClues() bool {
+	return len(c.Clues) < maxClues
 }
