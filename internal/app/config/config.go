@@ -52,6 +52,16 @@ type AppConfig struct {
 		// MaxOpenConns is the maximum number of open connections to the database
 		MaxOpenConns int `mapstructure:"max_open_conns"`
 	} `mapstructure:"database"`
+
+	// Llm contains the configuration for the LLM provider
+	Llm struct {
+		// BaseUrl is the base URL for the LLM provider API
+		BaseUrl string `mapstructure:"base_url"`
+		// Model is the model to be used by the LLM provider
+		Model string `mapstructure:"model"`
+		// ApiKey is the API key for authenticating with the LLM provider
+		ApiKey string `mapstructure:"api_key"`
+	} `mapstructure:"llm"`
 }
 
 // LoadConfig initialize the configuration and env vars from the config files
@@ -80,6 +90,7 @@ func LoadConfig(path string) (*AppConfig, error) {
 	// BindEnv Binds keys on AppConfig to the .env vars
 	// (this allows setting the .env value which name matches with an AppConfig element)
 	_ = vip.BindEnv("Database.Connection")
+	_ = vip.BindEnv("Llm.ApiKey")
 
 	// Load config and env vars on a AppConfig instance
 	cfg := &AppConfig{}

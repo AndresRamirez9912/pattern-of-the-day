@@ -21,9 +21,6 @@ func (a *App) bootstrapDatabase() error {
 	db.SetMaxOpenConns(a.cfg.Database.MaxOpenConns)
 	db.SetMaxIdleConns(a.cfg.Database.MinIdleConns)
 
-	// Close connection when the application is shutting down
-	defer db.Close()
-
 	// Validate the connection to the database by pinging it
 	err = db.Ping()
 	if err != nil {

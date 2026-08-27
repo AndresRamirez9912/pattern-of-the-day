@@ -1,0 +1,16 @@
+app:
+  name: "Pattern of the Day"
+  env: "development"
+
+logger:
+  level: "debug"
+  as_json: false
+  no_color: false
+
+database:
+  min_idle_conns: 1
+  max_open_conns: 10
+
+llm:
+  base_url: "http://localhost:11434"
+  model: "gemma4:12b"

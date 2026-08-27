@@ -11,12 +11,12 @@ import (
 type App struct {
 	// cfg contains the application configuration
 	cfg *config.AppConfig
-	// ctx is the context for managing application lifecycle
-	ctx context.Context
+	// Ctx is the context for managing application lifecycle
+	Ctx context.Context
 	// db is the database connection
 	db *sql.DB
 	// services contains the services layer of the application
-	services *Services
+	Services *Services
 	// logger is the application logger
 	logger *Logger
 }
@@ -26,7 +26,7 @@ func NewApp(cfg *config.AppConfig, ctx context.Context) (*App, error) {
 	// Create a new instance of the application
 	app := &App{
 		cfg: cfg,
-		ctx: ctx,
+		Ctx: ctx,
 	}
 
 	// Create the app logger
@@ -39,7 +39,23 @@ func NewApp(cfg *config.AppConfig, ctx context.Context) (*App, error) {
 	}
 
 	// Initialize services with the provided configuration
-	app.services = NewServices(cfg, app.logger)
+	app.Services = app.newServices(cfg, app.logger)
 
 	return app, nil
+}
+
+// GracefulShutdown performs a graceful shutdown of the application, closing the database connection and performing any necessary cleanup tasks
+func (a *App) GracefulShutdown() error {
+	// Close the database connection if it exists
+	if a.db != nil {
+		err := a.db.Close()
+		if err != nil {
+			a.logger.Error("error closing DB connection", "error", err.Error())
+			return err
+		}
+	}
+
+	// Perform any other cleanup tasks here if necessary
+
+	return nil
 }
