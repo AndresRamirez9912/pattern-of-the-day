@@ -1,5 +1,10 @@
 package domain
 
+import (
+	"fmt"
+	"strings"
+)
+
 // maxClues is the maximum number of clues a challenge can have.
 const maxClues = 3
 
@@ -47,6 +52,25 @@ func AllDifficulties() []Difficulty {
 	return []Difficulty{ChallengeDifficultyEasy, ChallengeDifficultyMedium, ChallengeDifficultyHard}
 }
 
+// IsValidDifficulty reports whether d is one of the supported difficulties.
+func IsValidDifficulty(d Difficulty) bool {
+	for _, valid := range AllDifficulties() {
+		if d == valid {
+			return true
+		}
+	}
+	return false
+}
+
+// ParseDifficulty validates and normalizes a raw string into a Difficulty.
+func ParseDifficulty(s string) (Difficulty, error) {
+	d := Difficulty(strings.ToLower(strings.TrimSpace(s)))
+	if !IsValidDifficulty(d) {
+		return "", fmt.Errorf("invalid difficulty %q: must be one of %v", s, AllDifficulties())
+	}
+	return d, nil
+}
+
 // ChallengeType is a custom type to define which subject area a challenge covers.
 type ChallengeType string
 
@@ -60,6 +84,25 @@ const (
 // AllChallengeTypes returns every supported challenge type.
 func AllChallengeTypes() []ChallengeType {
 	return []ChallengeType{TerraformChallengeType, DesignPatternsChallengeType, DataAnalyticsChallengeType}
+}
+
+// IsValidChallengeType reports whether t is one of the supported challenge types.
+func IsValidChallengeType(t ChallengeType) bool {
+	for _, valid := range AllChallengeTypes() {
+		if t == valid {
+			return true
+		}
+	}
+	return false
+}
+
+// ParseChallengeType validates and normalizes a raw string into a ChallengeType.
+func ParseChallengeType(s string) (ChallengeType, error) {
+	t := ChallengeType(strings.ToLower(strings.TrimSpace(s)))
+	if !IsValidChallengeType(t) {
+		return "", fmt.Errorf("invalid challenge type %q: must be one of %v", s, AllChallengeTypes())
+	}
+	return t, nil
 }
 
 // CanAddMoreClues reports whether the challenge can still receive another clue

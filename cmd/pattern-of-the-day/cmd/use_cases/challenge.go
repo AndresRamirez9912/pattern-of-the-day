@@ -37,11 +37,12 @@ Escribe los detalles del reto en challenge.md dentro de --out.
 Argumentos (obligatorios, en este orden):
   username    Nombre de usuario dueño del reto
   difficulty  Dificultad del reto: easy, medium o hard
+  type        Tipo de reto: terraform, design-patterns o data-analytics
 
-Todo lo demás es opcional vía flags. Si no usas --topic, --type o --target,
-se elige un valor aleatorio para cada uno que omitas, así puedes generar
-retos variados sin tener que pensarlos. --target se elige acorde al --type
-resultante (por ejemplo, un patrón de diseño si el tipo es design-patterns).
+Todo lo demás es opcional vía flags. Si no usas --topic o --target,
+el caso de uso elige un valor aleatorio para cada uno que omitas, así puedes
+generar retos variados sin tener que pensarlos. --target se elige acorde al
+--type resultante (por ejemplo, un patrón de diseño si el tipo es design-patterns).
 
 Ejemplos:
   patternd use-cases challenge create andres medium
@@ -50,47 +51,42 @@ Ejemplos:
 		RunE: func(cmd *cobra.Command, args []string) error {
 			username := args[0]
 
-			difficulty, err := parseDifficulty(args[1])
+			// Extract difficulty from args
+			difficulty, err := domain.ParseDifficulty(args[1])
 			if err != nil {
 				return err
 			}
 
-			topic, _ := cmd.Flags().GetString("topic")
-			if !cmd.Flags().Changed("topic") {
-				topic = randomTopic()
+			// Extract challenge type from args
+			challengeType := domain.ChallengeType(args[2])
+			if !domain.IsValidChallengeType(challengeType) {
+				return fmt.Errorf("invalid challenge type %q", challengeType)
 			}
 
-			challengeType := domain.ChallengeType(mustGetString(cmd, "type"))
-			if cmd.Flags().Changed("type") {
-				if !isValidChallengeType(challengeType) {
-					return fmt.Errorf("type inválido %q", challengeType)
-				}
-			} else {
-				challengeType = randomChallengeType()
-			}
-
-			target := mustGetString(cmd, "target")
-			if !cmd.Flags().Changed("target") {
-				target = randomTarget(challengeType)
-			}
-
+			// Extract output directory from flags
 			outDir := mustGetString(cmd, "out")
 
+			// Initialize the application context and services
 			app := InitApp()
 			defer app.GracefulShutdown()
 
-			app.Logger.Info("generando challenge", "topic", topic, "difficulty", difficulty, "type", challengeType)
-
-			createdChallenge, createdAttempt, err := app.Services.Challenge.CreateChallenge.Execute(app.Ctx, username, ports.ChallengeGenerationRequest{
-				Topic:      topic,
-				Difficulty: difficulty,
-				Target:     target,
-				Type:       challengeType,
-			}, outDir)
+			// Execute the create challenge use case
+			createdChallenge, createdAttempt, err := app.Services.Challenge.CreateChallenge.Execute(
+				app.Ctx,
+				username,
+				ports.ChallengeGenerationRequest{
+					Topic:      mustGetString(cmd, "topic"),
+					Difficulty: difficulty,
+					Target:     mustGetString(cmd, "target"),
+					Type:       domain.ChallengeType(mustGetString(cmd, "type")),
+				},
+				outDir,
+			)
 			if err != nil {
 				return err
 			}
 
+			// Log the created challenge and attempt
 			app.Logger.Info("challenge creado", "id", createdChallenge.Id, "name", createdChallenge.Name)
 			app.Logger.Info("intento inicial creado", "id", createdAttempt.Id, "status", createdAttempt.Status)
 
@@ -99,7 +95,6 @@ Ejemplos:
 	}
 
 	cmd.Flags().String("topic", "", "Topic of the challenge (random if omitted)")
-	cmd.Flags().String("type", "", "Challenge type: terraform, design-patterns or data-analytics (random if omitted)")
 	cmd.Flags().String("target", "", "Specific subject to evaluate within the type, e.g. facade (random if omitted)")
 	cmd.Flags().String("out", ".", "Output directory for challenge.md")
 
