@@ -28,7 +28,7 @@ func NewProvider(client *Client, model string, logger ports.Logger) *Provider {
 
 // GenerateChallenge generates a new challenge using the LLM provider
 func (o *Provider) GenerateChallenge(ctx context.Context, req ports.ChallengeGenerationRequest) (*domain.Challenge, error) {
-	o.Logger.Info("generating challenge via LLM provider", "model", o.Model, "type", string(req.Type), "target", req.Target, "difficulty", string(req.Difficulty))
+	o.Logger.Info("generating challenge via LLM provider", "model", o.Model, "type", string(req.Type), "difficulty", string(req.Difficulty))
 
 	system := challengeSystemPrompt
 	user := challengeUserPrompt(req)
@@ -51,7 +51,7 @@ func (o *Provider) GenerateChallenge(ctx context.Context, req ports.ChallengeGen
 		return nil, err
 	}
 
-	return domain.NewChallenge(0, parsed.Name, parsed.Description, req.Difficulty, req.Type, req.Target, req.UserId), nil
+	return domain.NewChallenge(0, parsed.Name, parsed.Description, req.Difficulty, req.Type, req.Target), nil
 }
 
 // EvaluateSolution evaluates a solution for a given challenge using the LLM provider and returns feedback.
