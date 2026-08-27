@@ -100,7 +100,7 @@ type ListAttemptsByUserChallengeRow struct {
 	ID_2          int64      `json:"id_2"`
 	Name          string     `json:"name"`
 	Description   string     `json:"description"`
-	Difficulty    int64      `json:"difficulty"`
+	Difficulty    string     `json:"difficulty"`
 	Type          string     `json:"type"`
 	TargetPattern string     `json:"target_pattern"`
 	UserID        int64      `json:"user_id"`

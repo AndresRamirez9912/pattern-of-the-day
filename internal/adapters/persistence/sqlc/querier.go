@@ -46,12 +46,11 @@ type Querier interface {
 	//
 	//  INSERT INTO feedbacks (
 	//      score,
-	//      rating,
 	//      summary,
 	//      suggestions
 	//  )
-	//  VALUES (?, ?, ?, ?)
-	//  RETURNING id, score, rating, summary, json(suggestions), created_at, updated_at
+	//  VALUES ( ?, ?, ?)
+	//  RETURNING id, score, summary, json(suggestions), created_at, updated_at
 	CreateFeedback(ctx context.Context, arg CreateFeedbackParams) (Feedback, error)
 	//CreateUser
 	//
@@ -83,7 +82,7 @@ type Querier interface {
 	GetCluesByChallengeId(ctx context.Context, challengeID int64) ([]Clue, error)
 	//GetFeedbackById
 	//
-	//  SELECT id, score, rating, summary, json(suggestions), created_at, updated_at
+	//  SELECT id, score, summary, json(suggestions), created_at, updated_at
 	//  FROM feedbacks
 	//  WHERE id = ?
 	GetFeedbackById(ctx context.Context, id int64) (Feedback, error)

@@ -23,7 +23,7 @@ type Challenge struct {
 	ID            int64     `json:"id"`
 	Name          string    `json:"name"`
 	Description   string    `json:"description"`
-	Difficulty    int64     `json:"difficulty"`
+	Difficulty    string    `json:"difficulty"`
 	Type          string    `json:"type"`
 	TargetPattern string    `json:"target_pattern"`
 	UserID        int64     `json:"user_id"`
@@ -43,7 +43,6 @@ type Clue struct {
 type Feedback struct {
 	ID          int64           `json:"id"`
 	Score       int64           `json:"score"`
-	Rating      int64           `json:"rating"`
 	Summary     string          `json:"summary"`
 	Suggestions json.RawMessage `json:"suggestions"`
 	CreatedAt   time.Time       `json:"created_at"`

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS challenges (
     -- description is a detailed description of the challenge
     description TEXT NOT NULL,
     -- difficulty is the difficulty level of the challenge (e.g., easy, medium, hard)
-    difficulty INTEGER NOT NULL,
+    difficulty VARCHAR NOT NULL,
     -- type is the type of the pattern that the challenge is based on (e.g., creational, structural, behavioral)
     type TEXT NOT NULL,
     -- target_pattern is the specific design pattern that the challenge is targeting
@@ -64,8 +64,6 @@ CREATE TABLE IF NOT EXISTS feedbacks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     -- score is a numerical score provided by the AI model to score the user's solution
     score INTEGER NOT NULL,
-    -- rating is a numerical rating provided by the user (e.g., 1-5)
-    rating INTEGER NOT NULL,
     -- summary is a textual summary of the feedback provided to the user
     summary TEXT NOT NULL,
     -- suggestions is a JSONB field that contains a list of suggestions for the user to improve their solution

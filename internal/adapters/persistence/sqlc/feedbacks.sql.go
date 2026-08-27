@@ -13,17 +13,15 @@ import (
 const createFeedback = `-- name: CreateFeedback :one
 INSERT INTO feedbacks (
     score,
-    rating,
     summary,
     suggestions
 )
-VALUES (?, ?, ?, ?)
-RETURNING id, score, rating, summary, json(suggestions), created_at, updated_at
+VALUES ( ?, ?, ?)
+RETURNING id, score, summary, json(suggestions), created_at, updated_at
 `
 
 type CreateFeedbackParams struct {
 	Score       int64           `json:"score"`
-	Rating      int64           `json:"rating"`
 	Summary     string          `json:"summary"`
 	Suggestions json.RawMessage `json:"suggestions"`
 }
@@ -32,24 +30,17 @@ type CreateFeedbackParams struct {
 //
 //	INSERT INTO feedbacks (
 //	    score,
-//	    rating,
 //	    summary,
 //	    suggestions
 //	)
-//	VALUES (?, ?, ?, ?)
-//	RETURNING id, score, rating, summary, json(suggestions), created_at, updated_at
+//	VALUES ( ?, ?, ?)
+//	RETURNING id, score, summary, json(suggestions), created_at, updated_at
 func (q *Queries) CreateFeedback(ctx context.Context, arg CreateFeedbackParams) (Feedback, error) {
-	row := q.queryRow(ctx, q.createFeedbackStmt, createFeedback,
-		arg.Score,
-		arg.Rating,
-		arg.Summary,
-		arg.Suggestions,
-	)
+	row := q.queryRow(ctx, q.createFeedbackStmt, createFeedback, arg.Score, arg.Summary, arg.Suggestions)
 	var i Feedback
 	err := row.Scan(
 		&i.ID,
 		&i.Score,
-		&i.Rating,
 		&i.Summary,
 		&i.Suggestions,
 		&i.CreatedAt,
@@ -59,14 +50,14 @@ func (q *Queries) CreateFeedback(ctx context.Context, arg CreateFeedbackParams) 
 }
 
 const getFeedbackById = `-- name: GetFeedbackById :one
-SELECT id, score, rating, summary, json(suggestions), created_at, updated_at
+SELECT id, score, summary, json(suggestions), created_at, updated_at
 FROM feedbacks
 WHERE id = ?
 `
 
 // GetFeedbackById
 //
-//	SELECT id, score, rating, summary, json(suggestions), created_at, updated_at
+//	SELECT id, score, summary, json(suggestions), created_at, updated_at
 //	FROM feedbacks
 //	WHERE id = ?
 func (q *Queries) GetFeedbackById(ctx context.Context, id int64) (Feedback, error) {
@@ -75,7 +66,6 @@ func (q *Queries) GetFeedbackById(ctx context.Context, id int64) (Feedback, erro
 	err := row.Scan(
 		&i.ID,
 		&i.Score,
-		&i.Rating,
 		&i.Summary,
 		&i.Suggestions,
 		&i.CreatedAt,

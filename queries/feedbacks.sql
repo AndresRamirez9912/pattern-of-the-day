@@ -1,11 +1,10 @@
 -- name: CreateFeedback :one
 INSERT INTO feedbacks (
     score,
-    rating,
     summary,
     suggestions
 )
-VALUES (?, ?, ?, ?)
+VALUES ( ?, ?, ?)
 RETURNING *;
 
 -- name: GetFeedbackById :one
