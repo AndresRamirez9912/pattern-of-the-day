@@ -2,9 +2,10 @@
 INSERT INTO attempts (
     feedback_id,
     challenge_id,
-    status
+    status,
+    sequence_order
 )
-VALUES (?, ?, ?)
+VALUES (?, ?, ?, ?)
 RETURNING *;
 
 -- This query fetches the attempts made by a specific user for a specific challenge.

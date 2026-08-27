@@ -27,9 +27,10 @@ func NewAttemptsRepository(querier *sqlc.Queries) *AttemptsRepository {
 func (a *AttemptsRepository) CreateAttempt(ctx context.Context, attempt *domain.Attempt) error {
 	// Use the querier to create a new attempt in the database
 	saved, err := a.querier.CreateAttempt(ctx, sqlc.CreateAttemptParams{
-		ChallengeID: *attempt.ChallengeId,
-		FeedbackID:  attempt.FeedbackId,
-		Status:      string(attempt.Status),
+		ChallengeID:   *attempt.ChallengeId,
+		FeedbackID:    attempt.FeedbackId,
+		Status:        string(attempt.Status),
+		SequenceOrder: int64(attempt.SequenceOrder),
 	})
 	if err != nil {
 		return err
@@ -97,10 +98,11 @@ func (a *AttemptsRepository) ListAttemptsByUserChallenge(ctx context.Context, us
 	domainAttempts := make([]*domain.Attempt, 0, len(attempts))
 	for _, row := range attempts {
 		domainAttempts = append(domainAttempts, &domain.Attempt{
-			Id:          row.ID,
-			ChallengeId: &row.ChallengeID,
-			FeedbackId:  row.FeedbackID,
-			Status:      domain.AttemptStatus(row.Status),
+			Id:            row.ID,
+			ChallengeId:   &row.ChallengeID,
+			FeedbackId:    row.FeedbackID,
+			Status:        domain.AttemptStatus(row.Status),
+			SequenceOrder: int(row.SequenceOrder),
 		})
 	}
 
@@ -110,9 +112,10 @@ func (a *AttemptsRepository) ListAttemptsByUserChallenge(ctx context.Context, us
 // mapAttempt converts a generated sqlc.Attempt row into a domain.Attempt.
 func mapAttempt(attempt sqlc.Attempt) *domain.Attempt {
 	return &domain.Attempt{
-		Id:          attempt.ID,
-		ChallengeId: &attempt.ChallengeID,
-		FeedbackId:  attempt.FeedbackID,
-		Status:      domain.AttemptStatus(attempt.Status),
+		Id:            attempt.ID,
+		ChallengeId:   &attempt.ChallengeID,
+		FeedbackId:    attempt.FeedbackID,
+		Status:        domain.AttemptStatus(attempt.Status),
+		SequenceOrder: int(attempt.SequenceOrder),
 	}
 }

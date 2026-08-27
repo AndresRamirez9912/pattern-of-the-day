@@ -12,6 +12,8 @@ type UserRepository interface {
 	SaveUser(ctx context.Context, user *domain.User) error
 	// GetUserByID retrieves a user entity from the repository by its ID
 	GetUserByID(ctx context.Context, id int64) (*domain.User, error)
+	// GetUserByUsername retrieves a user entity from the repository by its username
+	GetUserByUsername(ctx context.Context, username string) (*domain.User, error)
 	// ListUserChallenges retrieves all challenges associated with a user
 	ListUserChallenges(ctx context.Context, userId int64) ([]*domain.Challenge, error)
 }

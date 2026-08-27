@@ -9,13 +9,14 @@ import (
 )
 
 type Attempt struct {
-	ID          int64      `json:"id"`
-	ChallengeID int64      `json:"challenge_id"`
-	FeedbackID  *int64     `json:"feedback_id"`
-	Status      string     `json:"status"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	CompletedAt *time.Time `json:"completed_at"`
+	ID            int64      `json:"id"`
+	ChallengeID   int64      `json:"challenge_id"`
+	FeedbackID    *int64     `json:"feedback_id"`
+	Status        string     `json:"status"`
+	SequenceOrder int64      `json:"sequence_order"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	CompletedAt   *time.Time `json:"completed_at"`
 }
 
 type Challenge struct {

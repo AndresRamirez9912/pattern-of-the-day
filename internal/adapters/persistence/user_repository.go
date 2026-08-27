@@ -56,6 +56,22 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id int64) (*domain.Use
 
 }
 
+// GetUserByUsername retrieves a user entity from the repository by its username
+func (u *UserRepository) GetUserByUsername(ctx context.Context, username string) (*domain.User, error) {
+	// Use the querier to get a user from the database by its username
+	user, err := u.querier.GetUserByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	// Map the retrieved user to the domain model
+	return &domain.User{
+		Id:       user.ID,
+		UserName: user.Username,
+		Email:    user.Email,
+	}, nil
+}
+
 // ListUserChallenges retrieves all challenges associated with a user
 func (u *UserRepository) ListUserChallenges(ctx context.Context, userId int64) ([]*domain.Challenge, error) {
 	challenges, err := u.querier.ListUserChallenges(ctx, userId)

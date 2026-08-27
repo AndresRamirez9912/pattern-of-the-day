@@ -14,10 +14,11 @@ type Querier interface {
 	//  INSERT INTO attempts (
 	//      feedback_id,
 	//      challenge_id,
-	//      status
+	//      status,
+	//      sequence_order
 	//  )
-	//  VALUES (?, ?, ?)
-	//  RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+	//  VALUES (?, ?, ?, ?)
+	//  RETURNING id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 	CreateAttempt(ctx context.Context, arg CreateAttemptParams) (Attempt, error)
 	//CreateChallenge
 	//
@@ -63,7 +64,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	//GetAttemptById
 	//
-	//  SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+	//  SELECT id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 	//  FROM attempts
 	//  WHERE id = ?
 	GetAttemptById(ctx context.Context, id int64) (Attempt, error)
@@ -100,7 +101,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	//ListAttemptsByChallengeId
 	//
-	//  SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+	//  SELECT id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 	//  FROM attempts
 	//  WHERE challenge_id = ?
 	//  ORDER BY attempts.created_at DESC
@@ -109,7 +110,7 @@ type Querier interface {
 	// It can be used to track the progress of a user on a particular challenge
 	// It is obtained by joining the challenges table with the attempts table, filtering by user_id and challenge_id.
 	//
-	//  SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
+	//  SELECT attempts.id, challenge_id, feedback_id, status, sequence_order, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
 	//  FROM attempts
 	//  JOIN challenges ON attempts.challenge_id = challenges.id
 	//  WHERE challenges.user_id = ? AND challenges.id = ?
@@ -148,7 +149,7 @@ type Querier interface {
 	//      status = ?,
 	//      completed_at = CURRENT_TIMESTAMP
 	//  WHERE id = ?
-	//  RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+	//  RETURNING id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 	UpdateAttempt(ctx context.Context, arg UpdateAttemptParams) (Attempt, error)
 	//UpdateChallenge
 	//

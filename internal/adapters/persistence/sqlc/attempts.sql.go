@@ -14,16 +14,18 @@ const createAttempt = `-- name: CreateAttempt :one
 INSERT INTO attempts (
     feedback_id,
     challenge_id,
-    status
+    status,
+    sequence_order
 )
-VALUES (?, ?, ?)
-RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+VALUES (?, ?, ?, ?)
+RETURNING id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 `
 
 type CreateAttemptParams struct {
-	FeedbackID  *int64 `json:"feedback_id"`
-	ChallengeID int64  `json:"challenge_id"`
-	Status      string `json:"status"`
+	FeedbackID    *int64 `json:"feedback_id"`
+	ChallengeID   int64  `json:"challenge_id"`
+	Status        string `json:"status"`
+	SequenceOrder int64  `json:"sequence_order"`
 }
 
 // CreateAttempt
@@ -31,18 +33,25 @@ type CreateAttemptParams struct {
 //	INSERT INTO attempts (
 //	    feedback_id,
 //	    challenge_id,
-//	    status
+//	    status,
+//	    sequence_order
 //	)
-//	VALUES (?, ?, ?)
-//	RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+//	VALUES (?, ?, ?, ?)
+//	RETURNING id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 func (q *Queries) CreateAttempt(ctx context.Context, arg CreateAttemptParams) (Attempt, error) {
-	row := q.queryRow(ctx, q.createAttemptStmt, createAttempt, arg.FeedbackID, arg.ChallengeID, arg.Status)
+	row := q.queryRow(ctx, q.createAttemptStmt, createAttempt,
+		arg.FeedbackID,
+		arg.ChallengeID,
+		arg.Status,
+		arg.SequenceOrder,
+	)
 	var i Attempt
 	err := row.Scan(
 		&i.ID,
 		&i.ChallengeID,
 		&i.FeedbackID,
 		&i.Status,
+		&i.SequenceOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.CompletedAt,
@@ -51,14 +60,14 @@ func (q *Queries) CreateAttempt(ctx context.Context, arg CreateAttemptParams) (A
 }
 
 const getAttemptById = `-- name: GetAttemptById :one
-SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+SELECT id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 FROM attempts
 WHERE id = ?
 `
 
 // GetAttemptById
 //
-//	SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+//	SELECT id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 //	FROM attempts
 //	WHERE id = ?
 func (q *Queries) GetAttemptById(ctx context.Context, id int64) (Attempt, error) {
@@ -69,6 +78,7 @@ func (q *Queries) GetAttemptById(ctx context.Context, id int64) (Attempt, error)
 		&i.ChallengeID,
 		&i.FeedbackID,
 		&i.Status,
+		&i.SequenceOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.CompletedAt,
@@ -77,7 +87,7 @@ func (q *Queries) GetAttemptById(ctx context.Context, id int64) (Attempt, error)
 }
 
 const listAttemptsByChallengeId = `-- name: ListAttemptsByChallengeId :many
-SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+SELECT id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 FROM attempts
 WHERE challenge_id = ?
 ORDER BY attempts.created_at DESC
@@ -85,7 +95,7 @@ ORDER BY attempts.created_at DESC
 
 // ListAttemptsByChallengeId
 //
-//	SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+//	SELECT id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 //	FROM attempts
 //	WHERE challenge_id = ?
 //	ORDER BY attempts.created_at DESC
@@ -103,6 +113,7 @@ func (q *Queries) ListAttemptsByChallengeId(ctx context.Context, challengeID int
 			&i.ChallengeID,
 			&i.FeedbackID,
 			&i.Status,
+			&i.SequenceOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CompletedAt,
@@ -121,7 +132,7 @@ func (q *Queries) ListAttemptsByChallengeId(ctx context.Context, challengeID int
 }
 
 const listAttemptsByUserChallenge = `-- name: ListAttemptsByUserChallenge :many
-SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
+SELECT attempts.id, challenge_id, feedback_id, status, sequence_order, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
 FROM attempts
 JOIN challenges ON attempts.challenge_id = challenges.id
 WHERE challenges.user_id = ? AND challenges.id = ?
@@ -134,29 +145,30 @@ type ListAttemptsByUserChallengeParams struct {
 }
 
 type ListAttemptsByUserChallengeRow struct {
-	ID          int64      `json:"id"`
-	ChallengeID int64      `json:"challenge_id"`
-	FeedbackID  *int64     `json:"feedback_id"`
-	Status      string     `json:"status"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
-	CompletedAt *time.Time `json:"completed_at"`
-	ID_2        int64      `json:"id_2"`
-	Name        string     `json:"name"`
-	Description string     `json:"description"`
-	Difficulty  string     `json:"difficulty"`
-	Type        string     `json:"type"`
-	Target      string     `json:"target"`
-	UserID      int64      `json:"user_id"`
-	CreatedAt_2 time.Time  `json:"created_at_2"`
-	UpdatedAt_2 time.Time  `json:"updated_at_2"`
+	ID            int64      `json:"id"`
+	ChallengeID   int64      `json:"challenge_id"`
+	FeedbackID    *int64     `json:"feedback_id"`
+	Status        string     `json:"status"`
+	SequenceOrder int64      `json:"sequence_order"`
+	CreatedAt     time.Time  `json:"created_at"`
+	UpdatedAt     time.Time  `json:"updated_at"`
+	CompletedAt   *time.Time `json:"completed_at"`
+	ID_2          int64      `json:"id_2"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	Difficulty    string     `json:"difficulty"`
+	Type          string     `json:"type"`
+	Target        string     `json:"target"`
+	UserID        int64      `json:"user_id"`
+	CreatedAt_2   time.Time  `json:"created_at_2"`
+	UpdatedAt_2   time.Time  `json:"updated_at_2"`
 }
 
 // This query fetches the attempts made by a specific user for a specific challenge.
 // It can be used to track the progress of a user on a particular challenge
 // It is obtained by joining the challenges table with the attempts table, filtering by user_id and challenge_id.
 //
-//	SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
+//	SELECT attempts.id, challenge_id, feedback_id, status, sequence_order, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
 //	FROM attempts
 //	JOIN challenges ON attempts.challenge_id = challenges.id
 //	WHERE challenges.user_id = ? AND challenges.id = ?
@@ -175,6 +187,7 @@ func (q *Queries) ListAttemptsByUserChallenge(ctx context.Context, arg ListAttem
 			&i.ChallengeID,
 			&i.FeedbackID,
 			&i.Status,
+			&i.SequenceOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.CompletedAt,
@@ -207,7 +220,7 @@ SET feedback_id = ?,
     status = ?,
     completed_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+RETURNING id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 `
 
 type UpdateAttemptParams struct {
@@ -223,7 +236,7 @@ type UpdateAttemptParams struct {
 //	    status = ?,
 //	    completed_at = CURRENT_TIMESTAMP
 //	WHERE id = ?
-//	RETURNING id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+//	RETURNING id, challenge_id, feedback_id, status, sequence_order, created_at, updated_at, completed_at
 func (q *Queries) UpdateAttempt(ctx context.Context, arg UpdateAttemptParams) (Attempt, error) {
 	row := q.queryRow(ctx, q.updateAttemptStmt, updateAttempt, arg.FeedbackID, arg.Status, arg.ID)
 	var i Attempt
@@ -232,6 +245,7 @@ func (q *Queries) UpdateAttempt(ctx context.Context, arg UpdateAttemptParams) (A
 		&i.ChallengeID,
 		&i.FeedbackID,
 		&i.Status,
+		&i.SequenceOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.CompletedAt,

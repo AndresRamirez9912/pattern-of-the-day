@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS attempts (
     feedback_id INTEGER,
     -- status indicates whether the attempt was successful, failed, or is still in progress
     status TEXT NOT NULL,
+    -- sequence_order indicates this attempt's position among every attempt made for its challenge
+    sequence_order INTEGER NOT NULL,
 
     -- Timestamps
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
