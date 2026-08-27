@@ -17,15 +17,17 @@ type CreateChallengeUseCase struct {
 	ChallengeRepository ports.ChallengeRepository
 	AttemptsRepository  ports.AttemptsRepository
 	UserRepository      ports.UserRepository
+	FileWriter          ports.FileWriter
 }
 
-// NewCreateChallengeUseCase creates a new instance of CreateChallengeUseCase with the provided LLMProvider and ChallengeRepository
+// NewCreateChallengeUseCase creates a new instance of CreateChallengeUseCase with the provided dependencies
 func NewCreateChallengeUseCase(
 	logger ports.Logger,
 	llmProvider ports.LLMProvider,
 	challengeRepository ports.ChallengeRepository,
 	attemptsRepository ports.AttemptsRepository,
 	userRepository ports.UserRepository,
+	fileWriter ports.FileWriter,
 ) *CreateChallengeUseCase {
 	return &CreateChallengeUseCase{
 		Logger:              logger,
@@ -33,16 +35,17 @@ func NewCreateChallengeUseCase(
 		ChallengeRepository: challengeRepository,
 		AttemptsRepository:  attemptsRepository,
 		UserRepository:      userRepository,
+		FileWriter:          fileWriter,
 	}
 }
 
 // Execute generates a new challenge using the LLM provider, saves it to the ChallengeRepository,
-// and creates the initial pending attempt for it.
-func (c *CreateChallengeUseCase) Execute(ctx context.Context, req ports.ChallengeGenerationRequest) (*domain.Challenge, *domain.Attempt, error) {
+// creates the initial pending attempt for it, and writes challenge.md to outDir.
+func (c *CreateChallengeUseCase) Execute(ctx context.Context, userName string, req ports.ChallengeGenerationRequest, outDir string) (*domain.Challenge, *domain.Attempt, error) {
 	// Validate the user received (must exist)
-	user, err := c.UserRepository.GetUserByID(ctx, req.UserId)
+	user, err := c.UserRepository.GetUserByUsername(ctx, userName)
 	if errors.Is(err, sql.ErrNoRows) {
-		c.Logger.Error("user not found", "user_id", req.UserId)
+		c.Logger.Error("user not found", "username", userName)
 		return nil, nil, errors.New("user not found")
 	}
 	if err != nil {
@@ -69,12 +72,20 @@ func (c *CreateChallengeUseCase) Execute(ctx context.Context, req ports.Challeng
 
 	// Create the initial pending attempt for the generated challenge
 	attempt := &domain.Attempt{
-		ChallengeId: &challenge.Id,
-		Status:      domain.AttemptStatusPending,
+		ChallengeId:   &challenge.Id,
+		Status:        domain.AttemptStatusPending,
+		SequenceOrder: 1,
 	}
 	err = c.AttemptsRepository.CreateAttempt(ctx, attempt)
 	if err != nil {
 		c.Logger.Error("error creating attempt for the challenge", "error", err.Error())
+		return nil, nil, err
+	}
+
+	// Write the challenge details to challenge.md
+	err = c.FileWriter.WriteChallenge(ctx, outDir, challenge)
+	if err != nil {
+		c.Logger.Error("error writing challenge file", "error", err.Error())
 		return nil, nil, err
 	}
 

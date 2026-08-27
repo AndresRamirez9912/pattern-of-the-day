@@ -32,6 +32,7 @@ func (c *CreateAttemptUseCase) Execute(ctx context.Context, challengeId int64) (
 		return nil, err
 	}
 
+	// Ensure there are no open attempts for the challenge before creating a new one
 	for _, existing := range existingAttempts {
 		if !existing.IsClosed() {
 			return nil, fmt.Errorf("challenge %d already has an open attempt (id %d); finish it before starting a new one", challengeId, existing.Id)
@@ -40,8 +41,9 @@ func (c *CreateAttemptUseCase) Execute(ctx context.Context, challengeId int64) (
 
 	// Create a new attempt entity as pending and without a feedback reference
 	attempt := &domain.Attempt{
-		ChallengeId: &challengeId,
-		Status:      domain.AttemptStatusPending,
+		ChallengeId:   &challengeId,
+		Status:        domain.AttemptStatusPending,
+		SequenceOrder: len(existingAttempts) + 1,
 	}
 
 	// Save the attempt to the repository
