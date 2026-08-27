@@ -16,6 +16,11 @@ type jsonResponse interface {
 // since callers set ChatRequest.Format = "json") into T and validates it.
 func decodeJSON[T jsonResponse](content string) (T, error) {
 	var v T
+
+	if strings.TrimSpace(content) == "" {
+		return v, fmt.Errorf("ollama: model returned an empty response — the prompt may be too large for the model's context window, or the model failed to generate output")
+	}
+
 	if err := json.Unmarshal([]byte(content), &v); err != nil {
 		return v, fmt.Errorf("ollama: decoding json response: %w (raw: %q)", err, content)
 	}
@@ -25,7 +30,7 @@ func decodeJSON[T jsonResponse](content string) (T, error) {
 	return v, nil
 }
 
-// challengeResponse is the JSON shape expected back from the model for GenerateChallente.
+// challengeResponse is the JSON shape expected back from the model for GenerateChallenge.
 type challengeResponse struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`

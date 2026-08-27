@@ -14,24 +14,32 @@ var _ ports.LLMProvider = &Provider{}
 type Provider struct {
 	Client *Client
 	Model  string
+	Logger ports.Logger
 }
 
 // NewProvider creates a new Ollama-backed LLMProvider.
-func NewProvider(client *Client, model string) *Provider {
+func NewProvider(client *Client, model string, logger ports.Logger) *Provider {
 	return &Provider{
 		Client: client,
 		Model:  model,
+		Logger: logger,
 	}
 }
 
-// GenerateChallente generates a new challenge using the LLM provider
-func (o *Provider) GenerateChallente(ctx context.Context, req ports.ChallengeGenerationRequest) (*domain.Challenge, error) {
+// GenerateChallenge generates a new challenge using the LLM provider
+func (o *Provider) GenerateChallenge(ctx context.Context, req ports.ChallengeGenerationRequest) (*domain.Challenge, error) {
+	o.Logger.Info("generating challenge via LLM provider", "model", o.Model, "type", string(req.Type), "target", req.Target, "difficulty", string(req.Difficulty))
+
+	system := challengeSystemPrompt
+	user := challengeUserPrompt(req)
+
 	resp, err := o.Client.Chat(ctx, ChatRequest{
-		Model:  o.Model,
-		Format: "json",
+		Model:   o.Model,
+		Format:  "json",
+		Options: contextOptionsFor(system, user),
 		Messages: []ChatMessage{
-			{Role: "system", Content: challengeSystemPrompt},
-			{Role: "user", Content: challengeUserPrompt(req)},
+			{Role: "system", Content: system},
+			{Role: "user", Content: user},
 		},
 	})
 	if err != nil {
@@ -43,7 +51,7 @@ func (o *Provider) GenerateChallente(ctx context.Context, req ports.ChallengeGen
 		return nil, err
 	}
 
-	return domain.NewChallenge(0, parsed.Name, parsed.Description, req.Difficulty, req.Type, req.Pattern, req.UserId), nil
+	return domain.NewChallenge(0, parsed.Name, parsed.Description, req.Difficulty, req.Type, req.Target, req.UserId), nil
 }
 
 // EvaluateSolution evaluates a solution for a given challenge using the LLM provider and returns feedback.
@@ -54,12 +62,18 @@ func (o *Provider) EvaluateSolution(ctx context.Context, attempt *domain.Attempt
 		return nil, err
 	}
 
+	o.Logger.Info("evaluating solution via LLM provider", "model", o.Model, "challenge_id", challenge.Id, "attempt_id", attempt.Id, "solution_chars", len(solutionCode))
+
+	system := feedbackSystemPrompt
+	user := feedbackUserPrompt(challenge, solutionCode)
+
 	resp, err := o.Client.Chat(ctx, ChatRequest{
-		Model:  o.Model,
-		Format: "json",
+		Model:   o.Model,
+		Format:  "json",
+		Options: contextOptionsFor(system, user),
 		Messages: []ChatMessage{
-			{Role: "system", Content: feedbackSystemPrompt},
-			{Role: "user", Content: feedbackUserPrompt(challenge, solutionCode)},
+			{Role: "system", Content: system},
+			{Role: "user", Content: user},
 		},
 	})
 	if err != nil {
@@ -81,12 +95,18 @@ func (o *Provider) EvaluateSolution(ctx context.Context, attempt *domain.Attempt
 
 // GenerateClue generates a clue for a given challenge using the LLM provider and returns the clue
 func (o *Provider) GenerateClue(ctx context.Context, challenge *domain.Challenge) (*domain.Clue, error) {
+	o.Logger.Info("generating clue via LLM provider", "model", o.Model, "challenge_id", challenge.Id, "clue_number", len(challenge.Clues)+1)
+
+	system := clueSystemPrompt
+	user := clueUserPrompt(challenge)
+
 	resp, err := o.Client.Chat(ctx, ChatRequest{
-		Model:  o.Model,
-		Format: "json",
+		Model:   o.Model,
+		Format:  "json",
+		Options: contextOptionsFor(system, user),
 		Messages: []ChatMessage{
-			{Role: "system", Content: clueSystemPrompt},
-			{Role: "user", Content: clueUserPrompt(challenge)},
+			{Role: "system", Content: system},
+			{Role: "user", Content: user},
 		},
 	})
 	if err != nil {
