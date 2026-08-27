@@ -27,7 +27,7 @@ func typeGuidance(t domain.ChallengeType) string {
 	case domain.TerraformChallengeType:
 		return "El reto debe resolverse escribiendo código Terraform (HCL) idiomático. \"target\" es el concepto de Terraform que se está practicando (por ejemplo: módulos, manejo de estado remoto, variables y outputs, workspaces, providers múltiples)."
 	case domain.DataAnalyticsChallengeType:
-		return "El reto debe resolverse escribiendo código Go que procese o analice datos. \"target\" es la técnica de análisis de datos que se está practicando (por ejemplo: limpieza de datos, agregaciones, detección de outliers, series de tiempo)."
+		return "El reto debe resolverse escribiendo código Python idiomático (puede usar librerías comunes de análisis de datos como pandas o numpy) que procese o analice datos. \"target\" es la técnica de análisis de datos que se está practicando (por ejemplo: limpieza de datos, agregaciones, detección de outliers, series de tiempo)."
 	case domain.DesignPatternsChallengeType:
 		return "El reto debe resolverse implementando, en Go idiomático (interfaces, structs y composición — Go no tiene clases ni herencia), el patrón de diseño indicado en \"target\"."
 	default:

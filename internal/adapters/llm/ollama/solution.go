@@ -17,10 +17,11 @@ const maxSolutionChars = 100_000
 
 // solutionFileExtensions are the source file extensions read from a
 // solution directory — covers the technologies challenges currently target
-// (Go code, Terraform HCL).
+// (Go for design-patterns, Terraform HCL for terraform, Python for data-analytics).
 var solutionFileExtensions = map[string]bool{
 	".go": true,
 	".tf": true,
+	".py": true,
 }
 
 // skippedSolutionDirs are directories never worth reading as part of a
