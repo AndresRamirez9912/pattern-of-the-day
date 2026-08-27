@@ -23,5 +23,4 @@ type ChallengeGenerationRequest struct {
 	// Target is the specific subject to evaluate within Type
 	Target string
 	Type   domain.ChallengeType
-	UserId int64
 }
