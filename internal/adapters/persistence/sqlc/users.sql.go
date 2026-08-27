@@ -93,7 +93,7 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 }
 
 const listUserChallenges = `-- name: ListUserChallenges :many
-SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 FROM challenges
 WHERE user_id = ?
 ORDER BY created_at DESC
@@ -101,7 +101,7 @@ ORDER BY created_at DESC
 
 // ListUserChallenges
 //
-//	SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+//	SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 //	FROM challenges
 //	WHERE user_id = ?
 //	ORDER BY created_at DESC
@@ -120,7 +120,7 @@ func (q *Queries) ListUserChallenges(ctx context.Context, userID int64) ([]Chall
 			&i.Description,
 			&i.Difficulty,
 			&i.Type,
-			&i.TargetPattern,
+			&i.Target,
 			&i.UserID,
 			&i.CreatedAt,
 			&i.UpdatedAt,

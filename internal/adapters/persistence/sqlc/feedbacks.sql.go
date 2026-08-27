@@ -7,7 +7,6 @@ package sqlc
 
 import (
 	"context"
-	"encoding/json"
 )
 
 const createFeedback = `-- name: CreateFeedback :one
@@ -17,13 +16,13 @@ INSERT INTO feedbacks (
     suggestions
 )
 VALUES ( ?, ?, ?)
-RETURNING id, score, summary, json(suggestions), created_at, updated_at
+RETURNING id, score, summary, suggestions, created_at, updated_at
 `
 
 type CreateFeedbackParams struct {
-	Score       int64           `json:"score"`
-	Summary     string          `json:"summary"`
-	Suggestions json.RawMessage `json:"suggestions"`
+	Score       int64  `json:"score"`
+	Summary     string `json:"summary"`
+	Suggestions string `json:"suggestions"`
 }
 
 // CreateFeedback
@@ -34,7 +33,7 @@ type CreateFeedbackParams struct {
 //	    suggestions
 //	)
 //	VALUES ( ?, ?, ?)
-//	RETURNING id, score, summary, json(suggestions), created_at, updated_at
+//	RETURNING id, score, summary, suggestions, created_at, updated_at
 func (q *Queries) CreateFeedback(ctx context.Context, arg CreateFeedbackParams) (Feedback, error) {
 	row := q.queryRow(ctx, q.createFeedbackStmt, createFeedback, arg.Score, arg.Summary, arg.Suggestions)
 	var i Feedback
@@ -50,14 +49,14 @@ func (q *Queries) CreateFeedback(ctx context.Context, arg CreateFeedbackParams) 
 }
 
 const getFeedbackById = `-- name: GetFeedbackById :one
-SELECT id, score, summary, json(suggestions), created_at, updated_at
+SELECT id, score, summary, suggestions, created_at, updated_at
 FROM feedbacks
 WHERE id = ?
 `
 
 // GetFeedbackById
 //
-//	SELECT id, score, summary, json(suggestions), created_at, updated_at
+//	SELECT id, score, summary, suggestions, created_at, updated_at
 //	FROM feedbacks
 //	WHERE id = ?
 func (q *Queries) GetFeedbackById(ctx context.Context, id int64) (Feedback, error) {

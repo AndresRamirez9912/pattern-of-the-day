@@ -26,11 +26,11 @@ type Querier interface {
 	//      description,
 	//      difficulty,
 	//      type,
-	//      target_pattern,
+	//      target,
 	//      user_id
 	//  )
 	//  VALUES (?, ?, ?, ?, ?, ?)
-	//  RETURNING id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+	//  RETURNING id, name, description, difficulty, type, target, user_id, created_at, updated_at
 	CreateChallenge(ctx context.Context, arg CreateChallengeParams) (Challenge, error)
 	//CreateClue
 	//
@@ -50,7 +50,7 @@ type Querier interface {
 	//      suggestions
 	//  )
 	//  VALUES ( ?, ?, ?)
-	//  RETURNING id, score, summary, json(suggestions), created_at, updated_at
+	//  RETURNING id, score, summary, suggestions, created_at, updated_at
 	CreateFeedback(ctx context.Context, arg CreateFeedbackParams) (Feedback, error)
 	//CreateUser
 	//
@@ -69,7 +69,7 @@ type Querier interface {
 	GetAttemptById(ctx context.Context, id int64) (Attempt, error)
 	//GetChallengeById
 	//
-	//  SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+	//  SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 	//  FROM challenges
 	//  WHERE id = ?
 	GetChallengeById(ctx context.Context, id int64) (Challenge, error)
@@ -82,7 +82,7 @@ type Querier interface {
 	GetCluesByChallengeId(ctx context.Context, challengeID int64) ([]Clue, error)
 	//GetFeedbackById
 	//
-	//  SELECT id, score, summary, json(suggestions), created_at, updated_at
+	//  SELECT id, score, summary, suggestions, created_at, updated_at
 	//  FROM feedbacks
 	//  WHERE id = ?
 	GetFeedbackById(ctx context.Context, id int64) (Feedback, error)
@@ -98,11 +98,18 @@ type Querier interface {
 	//  FROM users
 	//  WHERE username = ?
 	GetUserByUsername(ctx context.Context, username string) (User, error)
-	// This query fetches the attemps made by a specific user for a specific challenge.
-	// It can be used to track the progress of a user on a particular challenge
-	// It is obtained joinning the table challenges with the attempts table, filtering by user_id and challenge_id.
+	//ListAttemptsByChallengeId
 	//
-	//  SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target_pattern, user_id, challenges.created_at, challenges.updated_at
+	//  SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+	//  FROM attempts
+	//  WHERE challenge_id = ?
+	//  ORDER BY attempts.created_at DESC
+	ListAttemptsByChallengeId(ctx context.Context, challengeID int64) ([]Attempt, error)
+	// This query fetches the attempts made by a specific user for a specific challenge.
+	// It can be used to track the progress of a user on a particular challenge
+	// It is obtained by joining the challenges table with the attempts table, filtering by user_id and challenge_id.
+	//
+	//  SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
 	//  FROM attempts
 	//  JOIN challenges ON attempts.challenge_id = challenges.id
 	//  WHERE challenges.user_id = ? AND challenges.id = ?
@@ -110,7 +117,7 @@ type Querier interface {
 	ListAttemptsByUserChallenge(ctx context.Context, arg ListAttemptsByUserChallengeParams) ([]ListAttemptsByUserChallengeRow, error)
 	//ListChallenges
 	//
-	//  SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+	//  SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 	//  FROM challenges
 	//  ORDER BY created_at DESC
 	ListChallenges(ctx context.Context) ([]Challenge, error)
@@ -123,7 +130,7 @@ type Querier interface {
 	ListCluesByChallengeId(ctx context.Context, challengeID int64) ([]Clue, error)
 	//ListUserChallenges
 	//
-	//  SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+	//  SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 	//  FROM challenges
 	//  WHERE user_id = ?
 	//  ORDER BY created_at DESC
@@ -150,10 +157,10 @@ type Querier interface {
 	//      description = ?,
 	//      difficulty = ?,
 	//      type = ?,
-	//      target_pattern = ?,
+	//      target = ?,
 	//      updated_at = CURRENT_TIMESTAMP
 	//  WHERE id = ?
-	//  RETURNING id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+	//  RETURNING id, name, description, difficulty, type, target, user_id, created_at, updated_at
 	UpdateChallenge(ctx context.Context, arg UpdateChallengeParams) (Challenge, error)
 	//UpdateUser
 	//

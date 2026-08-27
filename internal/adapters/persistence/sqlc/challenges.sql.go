@@ -15,20 +15,20 @@ INSERT INTO challenges (
     description,
     difficulty,
     type,
-    target_pattern,
+    target,
     user_id
 )
 VALUES (?, ?, ?, ?, ?, ?)
-RETURNING id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+RETURNING id, name, description, difficulty, type, target, user_id, created_at, updated_at
 `
 
 type CreateChallengeParams struct {
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	Difficulty    string `json:"difficulty"`
-	Type          string `json:"type"`
-	TargetPattern string `json:"target_pattern"`
-	UserID        int64  `json:"user_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Difficulty  string `json:"difficulty"`
+	Type        string `json:"type"`
+	Target      string `json:"target"`
+	UserID      int64  `json:"user_id"`
 }
 
 // CreateChallenge
@@ -38,18 +38,18 @@ type CreateChallengeParams struct {
 //	    description,
 //	    difficulty,
 //	    type,
-//	    target_pattern,
+//	    target,
 //	    user_id
 //	)
 //	VALUES (?, ?, ?, ?, ?, ?)
-//	RETURNING id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+//	RETURNING id, name, description, difficulty, type, target, user_id, created_at, updated_at
 func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams) (Challenge, error) {
 	row := q.queryRow(ctx, q.createChallengeStmt, createChallenge,
 		arg.Name,
 		arg.Description,
 		arg.Difficulty,
 		arg.Type,
-		arg.TargetPattern,
+		arg.Target,
 		arg.UserID,
 	)
 	var i Challenge
@@ -59,7 +59,7 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 		&i.Description,
 		&i.Difficulty,
 		&i.Type,
-		&i.TargetPattern,
+		&i.Target,
 		&i.UserID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -68,14 +68,14 @@ func (q *Queries) CreateChallenge(ctx context.Context, arg CreateChallengeParams
 }
 
 const getChallengeById = `-- name: GetChallengeById :one
-SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 FROM challenges
 WHERE id = ?
 `
 
 // GetChallengeById
 //
-//	SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+//	SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 //	FROM challenges
 //	WHERE id = ?
 func (q *Queries) GetChallengeById(ctx context.Context, id int64) (Challenge, error) {
@@ -87,7 +87,7 @@ func (q *Queries) GetChallengeById(ctx context.Context, id int64) (Challenge, er
 		&i.Description,
 		&i.Difficulty,
 		&i.Type,
-		&i.TargetPattern,
+		&i.Target,
 		&i.UserID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -96,14 +96,14 @@ func (q *Queries) GetChallengeById(ctx context.Context, id int64) (Challenge, er
 }
 
 const listChallenges = `-- name: ListChallenges :many
-SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 FROM challenges
 ORDER BY created_at DESC
 `
 
 // ListChallenges
 //
-//	SELECT id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+//	SELECT id, name, description, difficulty, type, target, user_id, created_at, updated_at
 //	FROM challenges
 //	ORDER BY created_at DESC
 func (q *Queries) ListChallenges(ctx context.Context) ([]Challenge, error) {
@@ -121,7 +121,7 @@ func (q *Queries) ListChallenges(ctx context.Context) ([]Challenge, error) {
 			&i.Description,
 			&i.Difficulty,
 			&i.Type,
-			&i.TargetPattern,
+			&i.Target,
 			&i.UserID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -145,19 +145,19 @@ SET name = ?,
     description = ?,
     difficulty = ?,
     type = ?,
-    target_pattern = ?,
+    target = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
-RETURNING id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+RETURNING id, name, description, difficulty, type, target, user_id, created_at, updated_at
 `
 
 type UpdateChallengeParams struct {
-	Name          string `json:"name"`
-	Description   string `json:"description"`
-	Difficulty    string `json:"difficulty"`
-	Type          string `json:"type"`
-	TargetPattern string `json:"target_pattern"`
-	ID            int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Difficulty  string `json:"difficulty"`
+	Type        string `json:"type"`
+	Target      string `json:"target"`
+	ID          int64  `json:"id"`
 }
 
 // UpdateChallenge
@@ -167,17 +167,17 @@ type UpdateChallengeParams struct {
 //	    description = ?,
 //	    difficulty = ?,
 //	    type = ?,
-//	    target_pattern = ?,
+//	    target = ?,
 //	    updated_at = CURRENT_TIMESTAMP
 //	WHERE id = ?
-//	RETURNING id, name, description, difficulty, type, target_pattern, user_id, created_at, updated_at
+//	RETURNING id, name, description, difficulty, type, target, user_id, created_at, updated_at
 func (q *Queries) UpdateChallenge(ctx context.Context, arg UpdateChallengeParams) (Challenge, error) {
 	row := q.queryRow(ctx, q.updateChallengeStmt, updateChallenge,
 		arg.Name,
 		arg.Description,
 		arg.Difficulty,
 		arg.Type,
-		arg.TargetPattern,
+		arg.Target,
 		arg.ID,
 	)
 	var i Challenge
@@ -187,7 +187,7 @@ func (q *Queries) UpdateChallenge(ctx context.Context, arg UpdateChallengeParams
 		&i.Description,
 		&i.Difficulty,
 		&i.Type,
-		&i.TargetPattern,
+		&i.Target,
 		&i.UserID,
 		&i.CreatedAt,
 		&i.UpdatedAt,

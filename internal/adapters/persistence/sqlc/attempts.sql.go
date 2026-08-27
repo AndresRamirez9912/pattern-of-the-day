@@ -76,8 +76,52 @@ func (q *Queries) GetAttemptById(ctx context.Context, id int64) (Attempt, error)
 	return i, err
 }
 
+const listAttemptsByChallengeId = `-- name: ListAttemptsByChallengeId :many
+SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+FROM attempts
+WHERE challenge_id = ?
+ORDER BY attempts.created_at DESC
+`
+
+// ListAttemptsByChallengeId
+//
+//	SELECT id, challenge_id, feedback_id, status, created_at, updated_at, completed_at
+//	FROM attempts
+//	WHERE challenge_id = ?
+//	ORDER BY attempts.created_at DESC
+func (q *Queries) ListAttemptsByChallengeId(ctx context.Context, challengeID int64) ([]Attempt, error) {
+	rows, err := q.query(ctx, q.listAttemptsByChallengeIdStmt, listAttemptsByChallengeId, challengeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Attempt
+	for rows.Next() {
+		var i Attempt
+		if err := rows.Scan(
+			&i.ID,
+			&i.ChallengeID,
+			&i.FeedbackID,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAttemptsByUserChallenge = `-- name: ListAttemptsByUserChallenge :many
-SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target_pattern, user_id, challenges.created_at, challenges.updated_at
+SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
 FROM attempts
 JOIN challenges ON attempts.challenge_id = challenges.id
 WHERE challenges.user_id = ? AND challenges.id = ?
@@ -90,29 +134,29 @@ type ListAttemptsByUserChallengeParams struct {
 }
 
 type ListAttemptsByUserChallengeRow struct {
-	ID            int64      `json:"id"`
-	ChallengeID   int64      `json:"challenge_id"`
-	FeedbackID    *int64     `json:"feedback_id"`
-	Status        string     `json:"status"`
-	CreatedAt     time.Time  `json:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at"`
-	CompletedAt   *time.Time `json:"completed_at"`
-	ID_2          int64      `json:"id_2"`
-	Name          string     `json:"name"`
-	Description   string     `json:"description"`
-	Difficulty    string     `json:"difficulty"`
-	Type          string     `json:"type"`
-	TargetPattern string     `json:"target_pattern"`
-	UserID        int64      `json:"user_id"`
-	CreatedAt_2   time.Time  `json:"created_at_2"`
-	UpdatedAt_2   time.Time  `json:"updated_at_2"`
+	ID          int64      `json:"id"`
+	ChallengeID int64      `json:"challenge_id"`
+	FeedbackID  *int64     `json:"feedback_id"`
+	Status      string     `json:"status"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
+	CompletedAt *time.Time `json:"completed_at"`
+	ID_2        int64      `json:"id_2"`
+	Name        string     `json:"name"`
+	Description string     `json:"description"`
+	Difficulty  string     `json:"difficulty"`
+	Type        string     `json:"type"`
+	Target      string     `json:"target"`
+	UserID      int64      `json:"user_id"`
+	CreatedAt_2 time.Time  `json:"created_at_2"`
+	UpdatedAt_2 time.Time  `json:"updated_at_2"`
 }
 
-// This query fetches the attemps made by a specific user for a specific challenge.
+// This query fetches the attempts made by a specific user for a specific challenge.
 // It can be used to track the progress of a user on a particular challenge
-// It is obtained joinning the table challenges with the attempts table, filtering by user_id and challenge_id.
+// It is obtained by joining the challenges table with the attempts table, filtering by user_id and challenge_id.
 //
-//	SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target_pattern, user_id, challenges.created_at, challenges.updated_at
+//	SELECT attempts.id, challenge_id, feedback_id, status, attempts.created_at, attempts.updated_at, completed_at, challenges.id, name, description, difficulty, type, target, user_id, challenges.created_at, challenges.updated_at
 //	FROM attempts
 //	JOIN challenges ON attempts.challenge_id = challenges.id
 //	WHERE challenges.user_id = ? AND challenges.id = ?
@@ -139,7 +183,7 @@ func (q *Queries) ListAttemptsByUserChallenge(ctx context.Context, arg ListAttem
 			&i.Description,
 			&i.Difficulty,
 			&i.Type,
-			&i.TargetPattern,
+			&i.Target,
 			&i.UserID,
 			&i.CreatedAt_2,
 			&i.UpdatedAt_2,

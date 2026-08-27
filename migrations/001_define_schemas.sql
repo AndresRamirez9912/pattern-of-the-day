@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     -- email is the unique email address of the user
     email TEXT NOT NULL UNIQUE,
 
-    -- Timestaps 
+    -- Timestamps
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -26,14 +26,15 @@ CREATE TABLE IF NOT EXISTS challenges (
     description TEXT NOT NULL,
     -- difficulty is the difficulty level of the challenge (e.g., easy, medium, hard)
     difficulty VARCHAR NOT NULL,
-    -- type is the type of the pattern that the challenge is based on (e.g., creational, structural, behavioral)
+    -- type is the subject area the challenge covers (e.g., terraform, design-patterns, data-analytics)
     type TEXT NOT NULL,
-    -- target_pattern is the specific design pattern that the challenge is targeting
-    target_pattern TEXT NOT NULL,
+    -- target is the specific subject the challenge evaluates within its type
+    -- (e.g., a design pattern name, a Terraform concept, a data-analytics technique)
+    target TEXT NOT NULL,
     -- user_id is a foreign key that references the id of the user who created the challenge
     user_id INTEGER NOT NULL,
 
-    -- Timestaps 
+    -- Timestamps
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -51,7 +52,7 @@ CREATE TABLE IF NOT EXISTS clues (
     -- sequence_order indicates the sequence in which clues should be presented to the user
     sequence_order INTEGER NOT NULL,
 
-    -- Timestaps 
+    -- Timestamps
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -66,15 +67,17 @@ CREATE TABLE IF NOT EXISTS feedbacks (
     score INTEGER NOT NULL,
     -- summary is a textual summary of the feedback provided to the user
     summary TEXT NOT NULL,
-    -- suggestions is a JSONB field that contains a list of suggestions for the user to improve their solution
-    suggestions JSONB NOT NULL CHECK(json_valid(suggestions)) DEFAULT '[]', 
+    -- suggestions is a JSON-encoded list of suggestions for the user to improve their solution.
+    -- Stored as TEXT (not JSONB) because the SQLite driver in use can't scan a json()
+    -- function result into json.RawMessage — the app marshals/unmarshals it itself.
+    suggestions TEXT NOT NULL CHECK(json_valid(suggestions)) DEFAULT '[]',
 
-    -- Timestaps 
+    -- Timestamps
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- attemps contains the definitions of the attempts that users have made to solve challenges
+-- attempts contains the definitions of the attempts that users have made to solve challenges
 CREATE TABLE IF NOT EXISTS attempts (
     -- id is the unique identifier for each attempt
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,7 +88,7 @@ CREATE TABLE IF NOT EXISTS attempts (
     -- status indicates whether the attempt was successful, failed, or is still in progress
     status TEXT NOT NULL,
 
-    -- Timestaps 
+    -- Timestamps
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed_at DATETIME,
@@ -157,7 +160,7 @@ DROP TRIGGER IF EXISTS update_clues_updated_at;
 DROP TRIGGER IF EXISTS update_challenges_updated_at;
 DROP TRIGGER IF EXISTS update_users_updated_at;
 
--- Deleta tables
+-- Delete tables
 DROP TABLE IF EXISTS attempts;
 DROP TABLE IF EXISTS feedbacks;
 DROP TABLE IF EXISTS clues;

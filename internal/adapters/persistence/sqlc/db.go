@@ -57,6 +57,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.getUserByUsernameStmt, err = db.PrepareContext(ctx, getUserByUsername); err != nil {
 		return nil, fmt.Errorf("error preparing query GetUserByUsername: %w", err)
 	}
+	if q.listAttemptsByChallengeIdStmt, err = db.PrepareContext(ctx, listAttemptsByChallengeId); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAttemptsByChallengeId: %w", err)
+	}
 	if q.listAttemptsByUserChallengeStmt, err = db.PrepareContext(ctx, listAttemptsByUserChallenge); err != nil {
 		return nil, fmt.Errorf("error preparing query ListAttemptsByUserChallenge: %w", err)
 	}
@@ -139,6 +142,11 @@ func (q *Queries) Close() error {
 	if q.getUserByUsernameStmt != nil {
 		if cerr := q.getUserByUsernameStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getUserByUsernameStmt: %w", cerr)
+		}
+	}
+	if q.listAttemptsByChallengeIdStmt != nil {
+		if cerr := q.listAttemptsByChallengeIdStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAttemptsByChallengeIdStmt: %w", cerr)
 		}
 	}
 	if q.listAttemptsByUserChallengeStmt != nil {
@@ -231,6 +239,7 @@ type Queries struct {
 	getFeedbackByIdStmt             *sql.Stmt
 	getUserByIdStmt                 *sql.Stmt
 	getUserByUsernameStmt           *sql.Stmt
+	listAttemptsByChallengeIdStmt   *sql.Stmt
 	listAttemptsByUserChallengeStmt *sql.Stmt
 	listChallengesStmt              *sql.Stmt
 	listCluesByChallengeIdStmt      *sql.Stmt
@@ -256,6 +265,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getFeedbackByIdStmt:             q.getFeedbackByIdStmt,
 		getUserByIdStmt:                 q.getUserByIdStmt,
 		getUserByUsernameStmt:           q.getUserByUsernameStmt,
+		listAttemptsByChallengeIdStmt:   q.listAttemptsByChallengeIdStmt,
 		listAttemptsByUserChallengeStmt: q.listAttemptsByUserChallengeStmt,
 		listChallengesStmt:              q.listChallengesStmt,
 		listCluesByChallengeIdStmt:      q.listCluesByChallengeIdStmt,

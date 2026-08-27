@@ -4,7 +4,7 @@ INSERT INTO challenges (
     description,
     difficulty,
     type,
-    target_pattern,
+    target,
     user_id
 )
 VALUES (?, ?, ?, ?, ?, ?)
@@ -26,7 +26,7 @@ SET name = ?,
     description = ?,
     difficulty = ?,
     type = ?,
-    target_pattern = ?,
+    target = ?,
     updated_at = CURRENT_TIMESTAMP
 WHERE id = ?
 RETURNING *;

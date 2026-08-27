@@ -5,7 +5,6 @@
 package sqlc
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -20,15 +19,15 @@ type Attempt struct {
 }
 
 type Challenge struct {
-	ID            int64     `json:"id"`
-	Name          string    `json:"name"`
-	Description   string    `json:"description"`
-	Difficulty    string    `json:"difficulty"`
-	Type          string    `json:"type"`
-	TargetPattern string    `json:"target_pattern"`
-	UserID        int64     `json:"user_id"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	ID          int64     `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Difficulty  string    `json:"difficulty"`
+	Type        string    `json:"type"`
+	Target      string    `json:"target"`
+	UserID      int64     `json:"user_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type Clue struct {
@@ -41,12 +40,12 @@ type Clue struct {
 }
 
 type Feedback struct {
-	ID          int64           `json:"id"`
-	Score       int64           `json:"score"`
-	Summary     string          `json:"summary"`
-	Suggestions json.RawMessage `json:"suggestions"`
-	CreatedAt   time.Time       `json:"created_at"`
-	UpdatedAt   time.Time       `json:"updated_at"`
+	ID          int64     `json:"id"`
+	Score       int64     `json:"score"`
+	Summary     string    `json:"summary"`
+	Suggestions string    `json:"suggestions"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 type User struct {
