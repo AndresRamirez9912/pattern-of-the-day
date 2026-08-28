@@ -1,8 +1,11 @@
-package usecases
+package cli
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app/config"
 	"github.com/spf13/cobra"
 )
 
@@ -53,7 +56,16 @@ Ejemplos:
 			solutionPath := args[1]
 			outDir := mustGetString(cmd, "out")
 
-			app := InitApp()
+			cfg, err := config.LoadConfig(".")
+			if err != nil {
+				panic(err)
+			}
+
+			app, err := app.NewApp(cfg, context.Background())
+			if err != nil {
+				panic(err)
+			}
+
 			defer app.GracefulShutdown()
 
 			attempt, err := app.Services.Attempts.GetAttempt.Execute(app.Ctx, attemptId)

@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/AndresRamirez9912/pattern-of-the-day/cmd/pattern-of-the-day/cmd/database"
-	usecases "github.com/AndresRamirez9912/pattern-of-the-day/cmd/pattern-of-the-day/cmd/use_cases"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/inbound/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ func NewRootCmd() *cobra.Command {
 	// Add sub-commands
 	rootCmd.AddCommand(NewVersionInfoCmd())
 	rootCmd.AddCommand(database.NewDatabaseRootCmd())
-	rootCmd.AddCommand(usecases.NewUseCasesRootCmd())
+	rootCmd.AddCommand(cli.NewUseCasesRootCmd())
 
 	return rootCmd
 }

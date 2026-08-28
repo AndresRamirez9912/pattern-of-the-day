@@ -1,8 +1,11 @@
-package usecases
+package cli
 
 import (
+	"context"
 	"fmt"
 
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app/config"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/domain"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/ports"
 	"github.com/spf13/cobra"
@@ -28,7 +31,7 @@ func NewChallengeUseCaseCmd() *cobra.Command {
 // CreateChallengeUseCaseCmd creates the command for executing the create challenge use case.
 func CreateChallengeUseCaseCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create <username> <difficulty>",
+		Use:   "create <username> <difficulty> <type>",
 		Short: "Generate a new challenge and its initial attempt",
 		Long: `Genera un nuevo reto usando el modelo de lenguaje configurado, y crea
 automáticamente el primer intento (attempt) pendiente para ese reto.
@@ -46,9 +49,10 @@ generar retos variados sin tener que pensarlos. --target se elige acorde al
 
 Ejemplos:
   patternd use-cases challenge create andres medium
-  patternd use-cases challenge create andres hard --type design-patterns --topic "sistema de pagos" --out ./mis-retos`,
-		Args: cobra.ExactArgs(2),
+  patternd use-cases challenge create andres hard design-patterns --topic "sistema de pagos" --out ./mis-retos`,
+		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Extract challenge type from args
 			username := args[0]
 
 			// Extract difficulty from args
@@ -67,7 +71,16 @@ Ejemplos:
 			outDir := mustGetString(cmd, "out")
 
 			// Initialize the application context and services
-			app := InitApp()
+			cfg, err := config.LoadConfig(".")
+			if err != nil {
+				panic(err)
+			}
+
+			app, err := app.NewApp(cfg, context.Background())
+			if err != nil {
+				panic(err)
+			}
+
 			defer app.GracefulShutdown()
 
 			// Execute the create challenge use case
@@ -78,7 +91,7 @@ Ejemplos:
 					Topic:      mustGetString(cmd, "topic"),
 					Difficulty: difficulty,
 					Target:     mustGetString(cmd, "target"),
-					Type:       domain.ChallengeType(mustGetString(cmd, "type")),
+					Type:       challengeType,
 				},
 				outDir,
 			)

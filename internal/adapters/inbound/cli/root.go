@@ -1,11 +1,8 @@
-package usecases
+package cli
 
 import (
-	"context"
 	"strconv"
 
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app/config"
 	"github.com/spf13/cobra"
 )
 
@@ -28,21 +25,6 @@ func NewUseCasesRootCmd() *cobra.Command {
 	rootCmd.AddCommand(NewFeedbackUseCaseCmd())
 
 	return rootCmd
-}
-
-// InitApp initializes the application with the configuration and context.
-func InitApp() *app.App {
-	cfg, err := config.LoadConfig(".")
-	if err != nil {
-		panic(err)
-	}
-
-	app, err := app.NewApp(cfg, context.Background())
-	if err != nil {
-		panic(err)
-	}
-
-	return app
 }
 
 // ParseStringId parses a string ID into an int64. It returns an error if the conversion fails.

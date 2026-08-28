@@ -1,6 +1,10 @@
-package usecases
+package cli
 
 import (
+	"context"
+
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app/config"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +48,16 @@ Ejemplo:
 			email := args[1]
 
 			// Initialize the application
-			app := InitApp()
+			cfg, err := config.LoadConfig(".")
+			if err != nil {
+				panic(err)
+			}
+
+			app, err := app.NewApp(cfg, context.Background())
+			if err != nil {
+				panic(err)
+			}
+
 			defer app.GracefulShutdown()
 
 			// Execute the use case for creating a user
