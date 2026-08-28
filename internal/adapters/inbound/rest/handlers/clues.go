@@ -56,6 +56,8 @@ func (h *ClueHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.createClue.Logger.Info("successfully created clue", "clue_id", clue.Id)
+
 	// Return the created clue as a JSON response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(

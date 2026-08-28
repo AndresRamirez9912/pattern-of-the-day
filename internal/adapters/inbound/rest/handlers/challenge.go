@@ -12,18 +12,18 @@ import (
 
 // ChallengeHandler only holds the use cases it actually needs
 type ChallengeHandler struct {
-	createChallenge *challenge.CreateChallengeUseCase
-	getChallenge    *challenge.GetChallengeUseCase
+	createChallenge     *challenge.CreateChallengeUseCase
+	getChallengeDetails *challenge.GetChallengeDetailsUseCase
 }
 
 // NewChallengeHandler creates a new ChallengeHandler.
 func NewChallengeHandler(
 	createChallenge *challenge.CreateChallengeUseCase,
-	getChallenge *challenge.GetChallengeUseCase,
+	getChallengeDetails *challenge.GetChallengeDetailsUseCase,
 ) *ChallengeHandler {
 	return &ChallengeHandler{
-		createChallenge: createChallenge,
-		getChallenge:    getChallenge,
+		createChallenge:     createChallenge,
+		getChallengeDetails: getChallengeDetails,
 	}
 }
 
@@ -68,11 +68,11 @@ func (h *ChallengeHandler) Create(w http.ResponseWriter, r *http.Request) {
 			Type:        string(challenge.Type),
 			Target:      challenge.Target,
 		},
-		Attempt: Attempt{
+		Attempts: []Attempt{{
 			AttemptId: attempt.Id,
 			Status:    string(attempt.Status),
 			Sequence:  attempt.SequenceOrder,
-		},
+		}},
 	}
 
 	// Respond with the created challenge details.
@@ -85,7 +85,7 @@ func (h *ChallengeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Extract the challenge ID from the request URL.
 	idStr := r.PathValue("challenge_id")
 	if idStr == "" {
-		h.getChallenge.Logger.Error("challenge ID is required")
+		h.getChallengeDetails.Logger.Error("challenge ID is required")
 
 		http.Error(w, "Challenge ID is required", http.StatusBadRequest)
 		return
@@ -94,16 +94,16 @@ func (h *ChallengeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Convert the challenge ID from string to integer.
 	challengeID, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		h.getChallenge.Logger.Error("invalid challenge ID format", "error", err.Error())
+		h.getChallengeDetails.Logger.Error("invalid challenge ID format", "error", err.Error())
 
 		http.Error(w, "Invalid Challenge ID format", http.StatusBadRequest)
 		return
 	}
 
-	// Execute the get challenge use case.
-	challenge, err := h.getChallenge.Execute(r.Context(), challengeID)
+	// Execute the get challenge details use case.
+	details, err := h.getChallengeDetails.Execute(r.Context(), challengeID)
 	if err != nil {
-		h.getChallenge.Logger.Error("error executing get challenge use case", "error", err.Error())
+		h.getChallengeDetails.Logger.Error("error executing get challenge details use case", "error", err.Error())
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -112,16 +112,62 @@ func (h *ChallengeHandler) Get(w http.ResponseWriter, r *http.Request) {
 	// Create response
 	resp := CreateChallengeResponse{
 		Challenge: Challenge{
-			ChallengeId: challenge.Id,
-			Name:        challenge.Name,
-			Description: challenge.Description,
-			Difficulty:  string(challenge.Difficulty),
-			Type:        string(challenge.Type),
-			Target:      challenge.Target,
+			ChallengeId: details.Challenge.Id,
+			Name:        details.Challenge.Name,
+			Description: details.Challenge.Description,
+			Difficulty:  string(details.Challenge.Difficulty),
+			Type:        string(details.Challenge.Type),
+			Target:      details.Challenge.Target,
+			Clues:       toClueDTOs(details.Challenge.Id, details.Challenge.Clues),
 		},
+		Attempts:  toAttemptDTOs(details.Attempts),
+		Feedbacks: toFeedbackDTOs(details.Feedbacks),
 	}
 
 	// Respond with the retrieved challenge details.
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
+}
+
+// toClueDTOs maps domain clues to their REST representation.
+func toClueDTOs(challengeId int64, clues []domain.Clue) []Clue {
+	dtos := make([]Clue, 0, len(clues))
+	for _, c := range clues {
+		dtos = append(dtos, Clue{
+			ClueId:      c.Id,
+			ChallengeId: challengeId,
+			Description: c.Description,
+		})
+	}
+
+	return dtos
+}
+
+// toAttemptDTOs maps domain attempts to their REST representation.
+func toAttemptDTOs(attempts []*domain.Attempt) []Attempt {
+	dtos := make([]Attempt, 0, len(attempts))
+	for _, a := range attempts {
+		dtos = append(dtos, Attempt{
+			AttemptId: a.Id,
+			Status:    string(a.Status),
+			Sequence:  a.SequenceOrder,
+		})
+	}
+
+	return dtos
+}
+
+// toFeedbackDTOs maps domain feedbacks to their REST representation.
+func toFeedbackDTOs(feedbacks []*domain.Feedback) []Feedback {
+	dtos := make([]Feedback, 0, len(feedbacks))
+	for _, f := range feedbacks {
+		dtos = append(dtos, Feedback{
+			FeedbackId:  f.Id,
+			Score:       f.Score,
+			Summary:     f.Summary,
+			Suggestions: f.Suggestions,
+		})
+	}
+
+	return dtos
 }
