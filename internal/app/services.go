@@ -1,10 +1,10 @@
 package app
 
 import (
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/filesystem"
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/llm/ollama"
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/persistence"
-	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/persistence/sqlc"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/outbound/filesystem"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/outbound/llm/ollama"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/outbound/persistence"
+	"github.com/AndresRamirez9912/pattern-of-the-day/internal/adapters/outbound/persistence/sqlc"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/app/config"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/application/attempt"
 	"github.com/AndresRamirez9912/pattern-of-the-day/internal/application/challenge"
