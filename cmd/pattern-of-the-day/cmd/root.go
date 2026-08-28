@@ -26,6 +26,7 @@ func NewRootCmd() *cobra.Command {
 	rootCmd.AddCommand(NewVersionInfoCmd())
 	rootCmd.AddCommand(database.NewDatabaseRootCmd())
 	rootCmd.AddCommand(cli.NewUseCasesRootCmd())
+	rootCmd.AddCommand(StartServerCmd())
 
 	return rootCmd
 }

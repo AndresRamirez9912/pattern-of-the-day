@@ -19,7 +19,7 @@ type Server struct {
 // the given services so its handlers can execute use cases.
 func NewServer(cfg config.AppConfig, logger ports.Logger, services *app.Services) *Server {
 	// Create the router and register all routes
-	mux := NewRouter(logger, services)
+	mux := NewRouter(services)
 
 	httpServer := &http.Server{
 		Addr:    cfg.App.RestAddr,
