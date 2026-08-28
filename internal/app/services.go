@@ -26,12 +26,14 @@ type Services struct {
 // UserUseCases represents the use cases related to user management in the application.
 type UserUseCases struct {
 	CreateUser *user.CreateUserUseCase
+	GetUser    *user.GetUserUseCase
 }
 
 // ChallengeUseCases represents the use cases related to challenge management in the application.
 type ChallengeUseCases struct {
-	CreateChallenge *challenge.CreateChallengeUseCase
-	GetChallenge    *challenge.GetChallengeUseCase
+	CreateChallenge     *challenge.CreateChallengeUseCase
+	GetChallenge        *challenge.GetChallengeUseCase
+	GetChallengeDetails *challenge.GetChallengeDetailsUseCase
 }
 
 // ClueUseCases represents the use cases related to clue management in the application.
@@ -48,6 +50,7 @@ type AttemptUseCases struct {
 // FeedbackUseCases represents the use cases related to feedback management in the application.
 type FeedbackUseCases struct {
 	CreateFeedback *feedback.CreateFeedbackUseCase
+	GetFeedback    *feedback.GetFeedbackUseCase
 }
 
 // newServices creates a new instance of Services with the required dependencies
@@ -81,6 +84,7 @@ func (a *App) newServices(cfg *config.AppConfig, logger *Logger) *Services {
 		challengeRepository,
 		attemptRepository,
 		userRepository,
+		feedbackRepository,
 		fileWriter,
 	)
 
@@ -116,9 +120,11 @@ func (a *App) newServices(cfg *config.AppConfig, logger *Logger) *Services {
 // createUser initializes the UserUseCases with the required dependencies.
 func (a *App) createUser(logger ports.Logger, userRepository ports.UserRepository) *UserUseCases {
 	createUser := user.NewCreateUserUseCase(logger, userRepository)
+	getUser := user.NewGetUserUseCase(logger, userRepository)
 
 	return &UserUseCases{
 		CreateUser: createUser,
+		GetUser:    getUser,
 	}
 }
 
@@ -129,14 +135,17 @@ func (a *App) createChallenge(
 	challengeRepository ports.ChallengeRepository,
 	attemptsRepository ports.AttemptsRepository,
 	userRepository ports.UserRepository,
+	feedbackRepository ports.FeedbackRepository,
 	fileWriter ports.FileWriter,
 ) *ChallengeUseCases {
 	createChallenge := challenge.NewCreateChallengeUseCase(logger, ollamaProvider, challengeRepository, attemptsRepository, userRepository, fileWriter)
 	getChallenge := challenge.NewGetChallengeUseCase(logger, challengeRepository)
+	getChallengeDetails := challenge.NewGetChallengeDetailsUseCase(logger, challengeRepository, attemptsRepository, feedbackRepository)
 
 	return &ChallengeUseCases{
-		CreateChallenge: createChallenge,
-		GetChallenge:    getChallenge,
+		CreateChallenge:     createChallenge,
+		GetChallenge:        getChallenge,
+		GetChallengeDetails: getChallengeDetails,
 	}
 }
 
@@ -169,8 +178,10 @@ func (a *App) createFeedback(
 	fileWriter ports.FileWriter,
 ) *FeedbackUseCases {
 	createFeedback := feedback.NewCreateFeedbackUseCase(logger, feedbackRepository, ollamaProvider, attemptRepository, fileWriter)
+	getFeedback := feedback.NewGetFeedbackUseCase(logger, feedbackRepository)
 
 	return &FeedbackUseCases{
 		CreateFeedback: createFeedback,
+		GetFeedback:    getFeedback,
 	}
 }

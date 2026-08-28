@@ -9,7 +9,7 @@ import (
 
 // CreateFeedbackUseCase handles the creation of a new feedback in the application
 type CreateFeedbackUseCase struct {
-	logger             ports.Logger
+	Logger             ports.Logger
 	feedbackRepository ports.FeedbackRepository
 	llmProvider        ports.LLMProvider
 	attemptRepository  ports.AttemptsRepository
@@ -25,7 +25,7 @@ func NewCreateFeedbackUseCase(
 	fileWriter ports.FileWriter,
 ) *CreateFeedbackUseCase {
 	return &CreateFeedbackUseCase{
-		logger:             logger,
+		Logger:             logger,
 		feedbackRepository: feedbackRepository,
 		llmProvider:        llmProvider,
 		attemptRepository:  attemptRepository,
@@ -39,14 +39,14 @@ func (c *CreateFeedbackUseCase) Execute(ctx context.Context, attempt *domain.Att
 	// Generate feedback using the LLM provider
 	feedback, err := c.llmProvider.EvaluateSolution(ctx, attempt, challenge, solutionPath)
 	if err != nil {
-		c.logger.Error("failed to generate feedback", "error", err.Error())
+		c.Logger.Error("failed to generate feedback", "error", err.Error())
 		return nil, err
 	}
 
 	// Save the feedback to the repository
 	err = c.feedbackRepository.SaveFeedback(ctx, feedback)
 	if err != nil {
-		c.logger.Error("failed to create feedback", "error", err.Error())
+		c.Logger.Error("failed to create feedback", "error", err.Error())
 		return nil, err
 	}
 
@@ -54,21 +54,21 @@ func (c *CreateFeedbackUseCase) Execute(ctx context.Context, attempt *domain.Att
 	attempt.FeedbackId = &feedback.Id
 	err = attempt.Complete()
 	if err != nil {
-		c.logger.Error("failed to complete attempt", "attempt_id", attempt.Id, "error", err.Error())
+		c.Logger.Error("failed to complete attempt", "attempt_id", attempt.Id, "error", err.Error())
 		return nil, err
 	}
 
 	// Update the attempt in the repository after linking the feedback and marking it as completed
 	err = c.attemptRepository.UpdateAttempt(ctx, attempt)
 	if err != nil {
-		c.logger.Error("failed to update attempt after feedback", "attempt_id", attempt.Id, "error", err.Error())
+		c.Logger.Error("failed to update attempt after feedback", "attempt_id", attempt.Id, "error", err.Error())
 		return nil, err
 	}
 
 	// Write the feedback to a file in the specified output directory
 	err = c.fileWriter.WriteFeedback(ctx, outDir, attempt, challenge, feedback)
 	if err != nil {
-		c.logger.Error("error writing feedback file", "error", err.Error())
+		c.Logger.Error("error writing feedback file", "error", err.Error())
 		return nil, err
 	}
 
