@@ -1,7 +1,7 @@
 app:
   name: "Pattern of the Day"
   env: "development"
-  rest_addr: "localhost:8080"
+  rest_addr: "0.0.0.0:8080"
 
 logger:
   level: "debug"
@@ -14,4 +14,4 @@ database:
 
 llm:
   base_url: "http://localhost:11434"
-  model: "gemma4:12b"
+  model: "gemma4:e2b"
