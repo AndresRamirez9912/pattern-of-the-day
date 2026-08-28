@@ -50,7 +50,7 @@ func (c *CreateChallengeUseCase) Execute(
 ) (*domain.Challenge, *domain.Attempt, error) {
 	// Validate the challenge type received
 	if !domain.IsValidChallengeType(req.Type) {
-		return nil, nil, fmt.Errorf("invalid challenge type %q", req.Type)
+		return nil, nil, domain.NewError(fmt.Sprintf("invalid challenge type %q", req.Type), domain.ErrCodeValidation)
 	}
 
 	if req.Target == "" {
@@ -62,7 +62,7 @@ func (c *CreateChallengeUseCase) Execute(
 	}
 
 	if !domain.IsValidDifficulty(req.Difficulty) {
-		return nil, nil, fmt.Errorf("invalid difficulty %q", req.Difficulty)
+		return nil, nil, domain.NewError(fmt.Sprintf("invalid difficulty %q", req.Difficulty), domain.ErrCodeValidation)
 	}
 
 	c.Logger.Info("generating challenge", "topic", req.Topic, "type", req.Type, "difficulty", req.Difficulty)
@@ -71,7 +71,7 @@ func (c *CreateChallengeUseCase) Execute(
 	user, err := c.UserRepository.GetUserByUsername(ctx, userName)
 	if errors.Is(err, sql.ErrNoRows) {
 		c.Logger.Error("user not found", "username", userName)
-		return nil, nil, errors.New("user not found")
+		return nil, nil, domain.NewError("user not found", domain.ErrCodeNotFound)
 	}
 	if err != nil {
 		c.Logger.Error("error fetching user", "error", err.Error())

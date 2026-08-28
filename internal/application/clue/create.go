@@ -31,7 +31,7 @@ func NewCreateClueUseCase(logger ports.Logger, llmProvider ports.LLMProvider, cl
 // and rewrites clues.md in outDir with the challenge's full, current list of clues.
 func (g *CreateClueUseCase) Execute(ctx context.Context, challenge *domain.Challenge, outDir string) (*domain.Clue, error) {
 	if !challenge.CanAddMoreClues() {
-		return nil, fmt.Errorf("challenge %d already has the maximum number of clues", challenge.Id)
+		return nil, domain.NewError(fmt.Sprintf("challenge %d already has the maximum number of clues", challenge.Id), domain.ErrCodeConflict)
 	}
 
 	// Generate a new clue using the LLM provider

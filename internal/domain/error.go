@@ -3,6 +3,17 @@ package domain
 // Type assertion Error must implement error interface
 var _ error = &Error{}
 
+// Supported errors
+const (
+	// ErrCodeValidation means the request itself was invalid (bad input).
+	ErrCodeValidation = 1
+	// ErrCodeNotFound means the referenced entity doesn't exist.
+	ErrCodeNotFound = 2
+	// ErrCodeConflict means the request is well-formed but conflicts with
+	// the current state of the entity (e.g. a business rule limit reached).
+	ErrCodeConflict = 3
+)
+
 // Error represents a domain error
 type Error struct {
 	Message string
