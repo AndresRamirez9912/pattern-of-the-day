@@ -29,6 +29,13 @@ type ChatOptions struct {
 	// itself supports, so large prompts get silently truncated unless this
 	// is set explicitly.
 	NumCtx int `json:"num_ctx,omitempty"`
+	// NumPredict caps how many tokens the model may generate in the
+	// response. Ollama's own default for this is small in many versions
+	// (e.g. 128), which silently cuts the response off mid-sentence before
+	// the JSON object is closed — that looks like a parsing bug but is
+	// actually generation being stopped early, so it needs to be set
+	// explicitly for anything longer than a short reply.
+	NumPredict int `json:"num_predict,omitempty"`
 }
 
 // ChatResponse represents the response body for the Ollama /api/chat endpoint
@@ -73,12 +80,20 @@ func (c *Client) Chat(ctx context.Context, req ChatRequest) (*ChatResponse, erro
 const (
 	minNumCtx = 2048
 	maxNumCtx = 32768
+	// numPredict is a generous, fixed cap on response length. Every prompt
+	// in this package asks for a single short-to-medium JSON object (a
+	// challenge, a clue, or feedback), so one fixed budget covers all of
+	// them without needing per-call tuning.
+	numPredict = 4096
 )
 
 // contextOptionsFor sizes the context window (num_ctx) for a request based
 // on the combined length of its prompts, so large inputs — e.g. a whole
 // project's source code submitted for evaluation — aren't silently
-// truncated by Ollama's small default context window.
+// truncated by Ollama's small default context window. It also sets
+// num_predict explicitly, since Ollama's own default for it is too small
+// for a multi-paragraph response and would truncate it well before num_ctx
+// becomes the limiting factor.
 func contextOptionsFor(prompts ...string) *ChatOptions {
 	chars := 0
 	for _, p := range prompts {
@@ -86,8 +101,8 @@ func contextOptionsFor(prompts ...string) *ChatOptions {
 	}
 
 	// Rough heuristic: ~4 characters per token, plus headroom for the
-	// model's own output and a safety margin.
-	estimatedTokens := chars/4 + 1024
+	// model's own output (bounded by numPredict) and a safety margin.
+	estimatedTokens := chars/4 + numPredict
 	estimatedTokens += estimatedTokens / 5
 
 	numCtx := minNumCtx
@@ -95,5 +110,5 @@ func contextOptionsFor(prompts ...string) *ChatOptions {
 		numCtx *= 2
 	}
 
-	return &ChatOptions{NumCtx: numCtx}
+	return &ChatOptions{NumCtx: numCtx, NumPredict: numPredict}
 }
